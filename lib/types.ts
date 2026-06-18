@@ -1,4 +1,5 @@
 export type WeatherType = "warm" | "mild" | "four_seasons" | "dry"
+export type UnitType = "studio" | "one_bed" | "two_bed" | "three_bed"
 
 export interface City {
   id: string
@@ -8,7 +9,10 @@ export interface City {
   lat: number
   lng: number
   walkScore: number
+  avgRentStudio: number
   avgRent1BR: number
+  avgRent2BR: number
+  avgRent3BR: number
   crimeIndex: number
   avgTempC: number
   annualPrecipMm: number

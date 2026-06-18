@@ -1,4 +1,4 @@
-import type { City, Weights, WeatherType, FactorScores, ScoredCity } from "./types"
+import type { City, Weights, WeatherType, UnitType, FactorScores, ScoredCity } from "./types"
 
 function minMaxNormalize(value: number, min: number, max: number): number {
   if (max === min) return 50
@@ -13,10 +13,24 @@ function bellCurve(value: number, ideal: number, range: number): number {
   return Math.max(0, Math.round(100 - Math.abs(value - ideal) * (100 / range) * 1.6))
 }
 
+function getRent(city: City, unitType: UnitType): number {
+  switch (unitType) {
+    case "studio":    return city.avgRentStudio
+    case "one_bed":   return city.avgRent1BR
+    case "two_bed":   return city.avgRent2BR
+    case "three_bed": return city.avgRent3BR
+  }
+}
+
+// Budget-relative affordability: 80 at budget, >80 under budget, <80 over budget
+function affordabilityScore(rent: number, budget: number): number {
+  return Math.max(0, Math.min(100, Math.round((budget / rent) * 80)))
+}
+
 function weatherScore(city: City, allCities: City[], type: WeatherType): number {
   const temps   = allCities.map((c) => c.avgTempC)
   const precips = allCities.map((c) => c.annualPrecipMm)
-  const minTemp = Math.min(...temps),   maxTemp = Math.max(...temps)
+  const minTemp = Math.min(...temps),     maxTemp = Math.max(...temps)
   const minPrecip = Math.min(...precips), maxPrecip = Math.max(...precips)
   const range = Math.max(maxTemp - minTemp, 1)
 
@@ -24,36 +38,25 @@ function weatherScore(city: City, allCities: City[], type: WeatherType): number 
   const warmScore = minMaxNormalize(city.avgTempC, minTemp, maxTemp)
 
   switch (type) {
-    case "warm":
-      // Reward highest annual avg temp — Windsor, Victoria, Vancouver rise
-      return Math.round(warmScore * 0.85 + dryScore * 0.15)
-
-    case "mild":
-      // Bell curve around 10°C annual avg (Vancouver/Victoria sweet spot), precip less penalised
-      return Math.round(bellCurve(city.avgTempC, 10, range) * 0.75 + dryScore * 0.25)
-
-    case "four_seasons":
-      // Current formula: comfortable mid-range temp + reasonably dry
-      return Math.round(bellCurve(city.avgTempC, 8, range) * 0.5 + dryScore * 0.5)
-
-    case "dry":
-      // Cold is fine — just keep the rain and snow down (Calgary, Regina, Saskatoon win)
-      return dryScore
+    case "warm":         return Math.round(warmScore * 0.85 + dryScore * 0.15)
+    case "mild":         return Math.round(bellCurve(city.avgTempC, 10, range) * 0.75 + dryScore * 0.25)
+    case "four_seasons": return Math.round(bellCurve(city.avgTempC, 8, range) * 0.5  + dryScore * 0.5)
+    case "dry":          return dryScore
   }
 }
 
 export function scoreCities(
   cities: City[],
   weights: Weights,
-  weatherType: WeatherType = "four_seasons"
+  weatherType: WeatherType = "four_seasons",
+  unitType: UnitType = "one_bed",
+  budget: number = 2000
 ): ScoredCity[] {
   const walkScores = cities.map((c) => c.walkScore)
-  const rents      = cities.map((c) => c.avgRent1BR)
   const crimes     = cities.map((c) => c.crimeIndex)
 
-  const minWalk = Math.min(...walkScores), maxWalk = Math.max(...walkScores)
-  const minRent = Math.min(...rents),      maxRent = Math.max(...rents)
-  const minCrime = Math.min(...crimes),    maxCrime = Math.max(...crimes)
+  const minWalk  = Math.min(...walkScores), maxWalk  = Math.max(...walkScores)
+  const minCrime = Math.min(...crimes),     maxCrime = Math.max(...crimes)
 
   const totalWeight = weights.walkability + weights.affordability + weights.safety + weights.weather
   const w = totalWeight === 0
@@ -66,9 +69,10 @@ export function scoreCities(
       }
 
   const scored = cities.map((city) => {
+    const rent = getRent(city, unitType)
     const factorScores: FactorScores = {
       walkability:   minMaxNormalize(city.walkScore, minWalk, maxWalk),
-      affordability: invertedNormalize(city.avgRent1BR, minRent, maxRent),
+      affordability: affordabilityScore(rent, budget),
       safety:        invertedNormalize(city.crimeIndex, minCrime, maxCrime),
       weather:       weatherScore(city, cities, weatherType),
     }
