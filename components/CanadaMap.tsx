@@ -1,14 +1,16 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps"
 import { useRouter } from "next/navigation"
 import { Plus, Minus, RotateCcw } from "lucide-react"
 import type { ScoredCity } from "@/lib/types"
 
-const CANADA_GEO_URL = "/canada-provinces.geojson"
 const MIN_ZOOM = 1
 const MAX_ZOOM = 12
+
+type Position = { coordinates: [number, number]; zoom: number }
+const DEFAULT_POSITION: Position = { coordinates: [0, 0], zoom: 1 }
 
 function scoreToColor(score: number): string {
   if (score >= 70) return "#16a34a"
@@ -25,29 +27,51 @@ interface Props {
 
 export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) {
   const router = useRouter()
-  const [zoom, setZoom] = useState(1)
-  const [center, setCenter] = useState<[number, number]>([0, 0])
-  const [tooltip, setTooltip] = useState<{ name: string; score: number; x: number; y: number } | null>(null)
 
-  const handleZoomIn  = useCallback(() => setZoom((z) => Math.min(z * 1.6, MAX_ZOOM)), [])
-  const handleZoomOut = useCallback(() => setZoom((z) => Math.max(z / 1.6, MIN_ZOOM)), [])
-  const handleReset   = useCallback(() => { setZoom(1); setCenter([0, 0]) }, [])
+  // Fetch GeoJSON once — never re-fetches on re-render
+  const [geoData, setGeoData] = useState<unknown>(null)
+  useEffect(() => {
+    fetch("/canada-provinces.geojson")
+      .then((r) => r.json())
+      .then(setGeoData)
+  }, [])
+
+  // Single position object: the canonical react-simple-maps pattern
+  const [position, setPosition] = useState<Position>(DEFAULT_POSITION)
+  // Key bump forces ComposableMap remount on reset, clearing d3-zoom state
+  const [resetKey, setResetKey] = useState(0)
+
+  const [tooltip, setTooltip] = useState<{
+    name: string; score: number; x: number; y: number
+  } | null>(null)
+
+  const handleZoomIn  = useCallback(() => setPosition((p) => ({ ...p, zoom: Math.min(p.zoom * 1.6, MAX_ZOOM) })), [])
+  const handleZoomOut = useCallback(() => setPosition((p) => ({ ...p, zoom: Math.max(p.zoom / 1.6, MIN_ZOOM) })), [])
+  const handleReset   = useCallback(() => { setPosition(DEFAULT_POSITION); setResetKey((k) => k + 1) }, [])
 
   function handleCityClick(slug: string) {
     if (onCityClick) onCityClick(slug)
     router.push(`/city/${slug}`)
   }
 
-  const dotScale = 1 / Math.sqrt(zoom)
+  const dotScale = 1 / Math.sqrt(position.zoom)
+
+  if (!geoData) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-neutral-50">
+        <div className="w-5 h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="relative w-full h-full select-none">
       {/* Zoom controls */}
       <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
         {[
-          { icon: Plus,      onClick: handleZoomIn,  title: "Zoom in",   size: 13 },
-          { icon: Minus,     onClick: handleZoomOut, title: "Zoom out",  size: 13 },
-          { icon: RotateCcw, onClick: handleReset,   title: "Reset view",size: 11 },
+          { icon: Plus,      onClick: handleZoomIn,  title: "Zoom in",    size: 13 },
+          { icon: Minus,     onClick: handleZoomOut, title: "Zoom out",   size: 13 },
+          { icon: RotateCcw, onClick: handleReset,   title: "Reset view", size: 11 },
         ].map(({ icon: Icon, onClick, title, size }) => (
           <button
             key={title}
@@ -60,10 +84,10 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
         ))}
       </div>
 
-      {/* Hint */}
+      {/* Zoom hint */}
       <div className="absolute bottom-4 right-4 z-10 text-xs text-neutral-400">
-        {zoom > 1
-          ? `${Math.round(zoom * 100)}% · scroll to zoom · drag to pan`
+        {position.zoom > 1
+          ? `${Math.round(position.zoom * 100)}% · scroll to zoom · drag to pan`
           : "Scroll to zoom · drag to pan"}
       </div>
 
@@ -81,21 +105,19 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
       )}
 
       <ComposableMap
+        key={resetKey}
         projection="geoAzimuthalEqualArea"
         projectionConfig={{ rotate: [96, -62, 0], scale: 780 }}
         style={{ width: "100%", height: "100%" }}
       >
         <ZoomableGroup
-          center={center}
-          zoom={zoom}
+          zoom={position.zoom}
+          center={position.coordinates}
           minZoom={MIN_ZOOM}
           maxZoom={MAX_ZOOM}
-          onMoveEnd={({ zoom: z, coordinates }) => {
-            setZoom(z)
-            setCenter(coordinates as [number, number])
-          }}
+          onMoveEnd={setPosition}
         >
-          <Geographies geography={CANADA_GEO_URL}>
+          <Geographies geography={geoData}>
             {({ geographies }: { geographies: unknown[] }) =>
               (geographies as { rsmKey: string }[]).map((geo) => (
                 <Geography
@@ -113,9 +135,9 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
 
           {cities.map((city) => {
             const isSelected = city.slug === selectedSlug
-            const color = scoreToColor(city.totalScore)
-            const r     = (isSelected ? 7 : 5) * dotScale
-            const glowR = (isSelected ? 11 : 8) * dotScale
+            const color  = scoreToColor(city.totalScore)
+            const r      = (isSelected ? 7 : 5) * dotScale
+            const glowR  = (isSelected ? 11 : 8) * dotScale
             const fontSize = 4.5 * dotScale
 
             return (
@@ -125,7 +147,12 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
                 onClick={() => handleCityClick(city.slug)}
                 onMouseEnter={(e: React.MouseEvent) => {
                   const rect = (e.target as SVGElement).closest("svg")?.getBoundingClientRect()
-                  setTooltip({ name: city.name, score: city.totalScore, x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) })
+                  setTooltip({
+                    name: city.name,
+                    score: city.totalScore,
+                    x: e.clientX - (rect?.left ?? 0),
+                    y: e.clientY - (rect?.top ?? 0),
+                  })
                 }}
                 onMouseLeave={() => setTooltip(null)}
                 style={{ cursor: "pointer" }}
@@ -145,7 +172,7 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
                   y={-(r + 3 * dotScale)}
                   style={{
                     fontSize: `${fontSize}px`,
-                    fill: zoom >= 2 ? "rgba(0,0,0,0.7)" : city.totalScore >= 60 ? "rgba(0,0,0,0.55)" : "none",
+                    fill: position.zoom >= 2 ? "rgba(0,0,0,0.7)" : city.totalScore >= 60 ? "rgba(0,0,0,0.55)" : "none",
                     fontFamily: "var(--font-sans)",
                     pointerEvents: "none",
                     fontWeight: "500",
