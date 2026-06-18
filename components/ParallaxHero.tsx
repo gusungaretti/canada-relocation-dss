@@ -41,7 +41,7 @@ export default function ParallaxHero() {
       {/* Content */}
       <div className="relative z-10 h-full flex flex-col justify-center px-8 max-w-6xl mx-auto">
         <p className="text-xs font-mono text-white/60 uppercase tracking-[0.2em] mb-6">
-          Canada Relocation Decision Support · MSE 401
+          Canada Relocation Decision Support
         </p>
         <h1 className="text-[clamp(3rem,8vw,6.5rem)] font-bold tracking-[-0.03em] leading-[0.92] text-white mb-8 max-w-4xl drop-shadow-sm">
           Find where you<br />belong in Canada.
