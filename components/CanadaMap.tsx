@@ -9,8 +9,13 @@ import type { ScoredCity } from "@/lib/types"
 const MIN_ZOOM = 1
 const MAX_ZOOM = 12
 
+// Geographic center of Canada — matches the projection's rotate: [96, -62, 0]
+// so projection([-96, 62]) lands at SVG center, keeping Canada visible on zoom.
+// Using [0, 0] (null island) caused the map to vanish when zoom > 1.
+const CANADA_CENTER: [number, number] = [-96, 62]
+
 type Position = { coordinates: [number, number]; zoom: number }
-const DEFAULT_POSITION: Position = { coordinates: [0, 0], zoom: 1 }
+const DEFAULT_POSITION: Position = { coordinates: CANADA_CENTER, zoom: 1 }
 
 function scoreToColor(score: number): string {
   if (score >= 70) return "#16a34a"
@@ -28,15 +33,12 @@ interface Props {
 export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) {
   const router = useRouter()
 
-  // Fetch GeoJSON once — never re-fetches on re-render
+  // GeoJSON loaded once — never re-fetched on re-render
   const [geoData, setGeoData] = useState<unknown>(null)
   useEffect(() => {
-    fetch("/canada-provinces.geojson")
-      .then((r) => r.json())
-      .then(setGeoData)
+    fetch("/canada-provinces.geojson").then((r) => r.json()).then(setGeoData)
   }, [])
 
-  // Single position object: the canonical react-simple-maps pattern
   const [position, setPosition] = useState<Position>(DEFAULT_POSITION)
   // Key bump forces ComposableMap remount on reset, clearing d3-zoom state
   const [resetKey, setResetKey] = useState(0)
@@ -135,9 +137,9 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
 
           {cities.map((city) => {
             const isSelected = city.slug === selectedSlug
-            const color  = scoreToColor(city.totalScore)
-            const r      = (isSelected ? 7 : 5) * dotScale
-            const glowR  = (isSelected ? 11 : 8) * dotScale
+            const color    = scoreToColor(city.totalScore)
+            const r        = (isSelected ? 7 : 5) * dotScale
+            const glowR    = (isSelected ? 11 : 8) * dotScale
             const fontSize = 4.5 * dotScale
 
             return (
