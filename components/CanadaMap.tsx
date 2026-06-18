@@ -77,7 +77,7 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
             key={title}
             onClick={onClick}
             title={title}
-            className="w-8 h-8 rounded-lg border border-black/[0.08] bg-white shadow-sm flex items-center justify-center text-neutral-500 hover:text-black hover:border-black/20 transition-colors"
+            className="w-8 h-8 border border-black/[0.08] bg-white shadow-sm flex items-center justify-center text-neutral-500 hover:text-black hover:border-black/20 transition-colors"
           >
             <Icon size={size} />
           </button>
@@ -94,7 +94,7 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
       {/* Tooltip */}
       {tooltip && (
         <div
-          className="absolute z-20 pointer-events-none px-3 py-2 rounded-lg text-sm shadow-lg border border-black/[0.07] bg-white"
+          className="absolute z-20 pointer-events-none px-3 py-2 text-sm shadow-lg border border-black/[0.07] bg-white"
           style={{ left: tooltip.x, top: tooltip.y - 52, transform: "translateX(-50%)" }}
         >
           <div className="text-xs font-medium text-black">{tooltip.name}</div>

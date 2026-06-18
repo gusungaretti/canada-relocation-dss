@@ -11,7 +11,7 @@ export default function LandingPage() {
           <span className="text-sm font-semibold text-white drop-shadow-sm">Maple Moving</span>
           <Link
             href="/explore"
-            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-colors"
           >
             Explore cities
             <ArrowRight size={13} />
@@ -88,7 +88,7 @@ export default function LandingPage() {
           <h2 className="text-4xl font-bold tracking-tight text-black">Ready to find your city?</h2>
           <Link
             href="/explore"
-            className="flex-shrink-0 flex items-center gap-2 text-sm font-semibold px-7 py-3.5 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors"
+            className="flex-shrink-0 flex items-center gap-2 text-sm font-semibold px-7 py-3.5 bg-black text-white hover:bg-neutral-800 transition-colors"
           >
             Start exploring <ArrowRight size={14} />
           </Link>

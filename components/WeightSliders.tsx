@@ -102,7 +102,7 @@ export default function WeightSliders({ weights, onChange, weatherType, onWeathe
                         key={wt.value}
                         onClick={() => onWeatherTypeChange(wt.value)}
                         title={wt.hint}
-                        className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                        className={`text-[11px] px-2.5 py-1 border transition-colors ${
                           weatherType === wt.value
                             ? "bg-black text-white border-black"
                             : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"

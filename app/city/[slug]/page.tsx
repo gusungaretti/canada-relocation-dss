@@ -79,7 +79,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
             { label: "Crime Severity",    value: String(city.crimeIndex),                sub: "national avg 100" },
             { label: "Avg. temperature",  value: `${city.avgTempC}°C`,                  sub: `${city.annualPrecipMm} mm/yr` },
           ].map(({ label, value, sub }) => (
-            <div key={label} className="bg-neutral-50 rounded-xl p-4 border border-black/[0.05]">
+            <div key={label} className="bg-neutral-50 p-4 border border-black/[0.05]">
               <div className="text-xs text-neutral-400 mb-3">{label}</div>
               <div className="text-xl font-mono font-bold text-black">{value}</div>
               <div className="text-xs text-neutral-400 mt-1">{sub}</div>
@@ -88,7 +88,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
         </div>
 
         {/* Factor scores */}
-        <div className="bg-neutral-50 rounded-2xl border border-black/[0.05] px-6 pb-3">
+        <div className="bg-neutral-50 border border-black/[0.05] px-6 pb-3">
           <div className="grid items-center gap-6 pt-5 pb-3" style={{ gridTemplateColumns: "130px 1fr 44px 90px" }}>
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-wide">Factor</span>
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-wide">Score</span>
@@ -110,7 +110,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
         <div className="mt-10">
           <Link
             href="/explore"
-            className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 rounded-full border border-black/10 text-black hover:bg-neutral-50 transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium px-5 py-2.5 border border-black/10 text-black hover:bg-neutral-50 transition-colors"
           >
             <ArrowLeft size={14} />
             Adjust priorities

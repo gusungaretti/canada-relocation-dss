@@ -52,7 +52,7 @@ export default function ParallaxHero() {
         <div className="flex items-center gap-5">
           <Link
             href="/explore"
-            className="flex items-center gap-2 text-sm font-semibold px-7 py-3.5 rounded-full bg-white text-black hover:bg-white/90 transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold px-7 py-3.5 bg-white text-black hover:bg-white/90 transition-colors"
           >
             Start exploring
             <ArrowRight size={15} />

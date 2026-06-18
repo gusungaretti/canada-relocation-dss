@@ -52,7 +52,7 @@ export default function ExplorePage() {
           </span>
           <button
             onClick={() => setShowSliders(!showSliders)}
-            className="sm:hidden flex items-center gap-1.5 text-xs border border-black/10 rounded-full px-3 py-1.5 text-black"
+            className="sm:hidden flex items-center gap-1.5 text-xs border border-black/10 px-3 py-1.5 text-black"
           >
             <SlidersHorizontal size={12} />
             Priorities
