@@ -47,7 +47,7 @@ export default function ParallaxHero() {
           Find where you<br />belong in Canada.
         </h1>
         <p className="text-lg text-white/75 max-w-lg leading-relaxed mb-10">
-          30 Canadian cities ranked by what matters to you — walkability, rent, safety, and weather.
+          38 Canadian cities ranked across 9 dimensions — by what matters to you.
         </p>
         <div className="flex items-center gap-5">
           <Link
