@@ -1,16 +1,17 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
+import ParallaxHero from "@/components/ParallaxHero"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      {/* Nav */}
-      <nav className="border-b border-black/[0.06] bg-white/90 backdrop-blur-sm sticky top-0 z-50">
+      {/* Nav — floats over hero, sticky after scroll */}
+      <nav className="absolute top-0 left-0 right-0 z-50">
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
-          <span className="text-sm font-semibold tracking-tight text-black">Maple Moving</span>
+          <span className="text-sm font-semibold text-white drop-shadow-sm">Maple Moving</span>
           <Link
             href="/explore"
-            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors"
+            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-colors"
           >
             Explore cities
             <ArrowRight size={13} />
@@ -18,43 +19,17 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="max-w-6xl mx-auto px-8 pt-24 pb-20">
-          <p className="text-xs font-mono text-neutral-400 uppercase tracking-[0.2em] mb-8">
-            Canada Relocation Decision Support · MSE 401
-          </p>
-          <h1 className="text-[clamp(3rem,8vw,6rem)] font-bold tracking-[-0.03em] leading-[0.95] text-black mb-8 max-w-4xl">
-            Find where you<br />belong in Canada.
-          </h1>
-          <p className="text-xl text-neutral-500 max-w-lg leading-relaxed mb-10">
-            30 Canadian cities ranked by what matters to you — walkability, rent, safety, and weather. Personalized. Instant. Data-driven.
-          </p>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/explore"
-              className="flex items-center gap-2 text-base font-semibold px-7 py-3.5 rounded-full bg-black text-white hover:bg-neutral-800 transition-colors"
-            >
-              Start exploring
-              <ArrowRight size={16} />
-            </Link>
-            <a
-              href="https://github.com/gusungaretti/canada-relocation-dss"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-neutral-400 hover:text-black transition-colors"
-            >
-              View source →
-            </a>
-          </div>
-        </section>
+      {/* Parallax hero */}
+      <ParallaxHero />
 
+      {/* White content below */}
+      <main className="bg-white flex-1">
         {/* Stats band */}
-        <section className="border-y border-black/[0.06] bg-neutral-50">
-          <div className="max-w-6xl mx-auto px-8 py-12 grid grid-cols-3 divide-x divide-black/[0.06]">
+        <section className="border-b border-black/[0.06]">
+          <div className="max-w-6xl mx-auto px-8 py-14 grid grid-cols-3 divide-x divide-black/[0.06]">
             {[
-              { v: "30", l: "Census Metro Areas" },
-              { v: "4",  l: "Data dimensions" },
+              { v: "30",   l: "Census Metro Areas" },
+              { v: "4",    l: "Data dimensions" },
               { v: "100%", l: "Personalized to you" },
             ].map(({ v, l }) => (
               <div key={l} className="px-12 first:pl-0 last:pr-0">
@@ -67,13 +42,15 @@ export default function LandingPage() {
 
         {/* What we measure */}
         <section className="max-w-6xl mx-auto px-8 py-24">
-          <p className="text-xs font-mono text-neutral-400 uppercase tracking-[0.2em] mb-16">What we measure</p>
+          <p className="text-xs font-mono text-neutral-400 uppercase tracking-[0.2em] mb-16">
+            What we measure
+          </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
             {[
-              { label: "Walkability",   source: "Walk Score",                       color: "#3b82f6" },
-              { label: "Affordability", source: "CMHC Rental Market Survey",        color: "#10b981" },
-              { label: "Safety",        source: "StatsCan Crime Severity Index",    color: "#f97316" },
-              { label: "Weather",       source: "Environment Canada 1991–2020",     color: "#0ea5e9" },
+              { label: "Walkability",   source: "Walk Score",                     color: "#3b82f6" },
+              { label: "Affordability", source: "CMHC Rental Market Survey",      color: "#10b981" },
+              { label: "Safety",        source: "StatsCan Crime Severity Index",  color: "#f97316" },
+              { label: "Weather",       source: "Environment Canada 1991–2020",   color: "#0ea5e9" },
             ].map(({ label, source, color }) => (
               <div key={label}>
                 <div className="w-2 h-2 rounded-full mb-5" style={{ backgroundColor: color }} />
@@ -87,10 +64,12 @@ export default function LandingPage() {
         {/* How it works */}
         <section className="border-t border-black/[0.06] bg-neutral-50">
           <div className="max-w-6xl mx-auto px-8 py-24">
-            <p className="text-xs font-mono text-neutral-400 uppercase tracking-[0.2em] mb-16">How it works</p>
+            <p className="text-xs font-mono text-neutral-400 uppercase tracking-[0.2em] mb-16">
+              How it works
+            </p>
             <div className="grid grid-cols-3 gap-16">
               {[
-                { n: "01", title: "Set your weights", body: "Drag sliders to allocate 100 points across walkability, affordability, safety, and weather." },
+                { n: "01", title: "Set your weights",   body: "Drag sliders to allocate 100 points across walkability, affordability, safety, and weather." },
                 { n: "02", title: "See instant rankings", body: "The scoring engine normalizes each metric and ranks all 30 CMAs in real time as you adjust." },
                 { n: "03", title: "Explore your top picks", body: "Click any city on the map or ranking list for a full factor breakdown with raw data and source citations." },
               ].map(({ n, title, body }) => (
