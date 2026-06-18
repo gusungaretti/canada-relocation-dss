@@ -43,50 +43,56 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  --background: #09090f;
-  --foreground: #f1f5f9;
-  --card: #0f0f1a;
-  --card-foreground: #f1f5f9;
-  --popover: #0f0f1a;
-  --popover-foreground: #f1f5f9;
-  --primary: #e8673a;
-  --primary-foreground: #ffffff;
-  --secondary: #1a1a2e;
-  --secondary-foreground: #94a3b8;
-  --muted: #1a1a2e;
-  --muted-foreground: #64748b;
-  --accent: #1e1e3a;
-  --accent-foreground: #f1f5f9;
-  --destructive: #ef4444;
-  --border: rgba(255, 255, 255, 0.07);
-  --input: rgba(255, 255, 255, 0.07);
-  --ring: #e8673a;
-  --chart-1: #22c55e;
-  --chart-2: #f59e0b;
-  --chart-3: #ef4444;
-  --chart-4: #6366f1;
-  --chart-5: #e8673a;
-  --radius: 0.75rem;
-  --sidebar: #0f0f1a;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #e8673a;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1a1a2e;
-  --sidebar-accent-foreground: #f1f5f9;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
-  --sidebar-ring: #e8673a;
+  /* Light mode — white canvas, maximum contrast */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #f5f5f7;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
 
-  /* score gradient */
-  --score-high: #22c55e;
-  --score-mid: #f59e0b;
-  --score-low: #ef4444;
-  --maple: #e8673a;
+  /* Brand — near-black. Data colors carry all the visual energy. */
+  --primary: #0a0a0a;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f0f0f2;
+  --secondary-foreground: #0a0a0a;
+  --muted: #f5f5f7;
+  --muted-foreground: #8a8a9a;
+
+  --accent: #f0f0f2;
+  --accent-foreground: #0a0a0a;
+  --destructive: #dc2626;
+
+  /* Borders — almost invisible, very refined */
+  --border: rgba(0, 0, 0, 0.07);
+  --input: rgba(0, 0, 0, 0.07);
+  --ring: #0a0a0a;
+
+  --radius: 0.5rem;
+
+  /* Data viz — unchanged, these are semantic */
+  --score-high: #16a34a;
+  --score-mid: #d97706;
+  --score-low: #dc2626;
+  --chart-1: #16a34a;
+  --chart-2: #d97706;
+  --chart-3: #dc2626;
+  --chart-4: #6366f1;
+  --chart-5: #0ea5e9;
+
+  /* Sidebar */
+  --sidebar: #f5f5f7;
+  --sidebar-foreground: #0a0a0a;
+  --sidebar-primary: #0a0a0a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebebed;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: rgba(0, 0, 0, 0.07);
+  --sidebar-ring: #0a0a0a;
 }
 
 @layer base {
@@ -102,13 +108,13 @@
   }
 }
 
-/* Custom range input styling */
+/* Range inputs */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
+  height: 2px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
   outline: none;
   cursor: pointer;
 }
@@ -116,40 +122,40 @@ input[type="range"] {
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #e8673a;
+  background: var(--thumb-color, #0a0a0a);
   cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 0 0 rgba(232, 103, 58, 0.3);
-  transition: box-shadow 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+  transition: transform 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 0 6px rgba(232, 103, 58, 0.2);
+  transform: scale(1.1);
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  background: #e8673a;
+  background: var(--thumb-color, #0a0a0a);
   cursor: pointer;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.9);
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.22);
 }

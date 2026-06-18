@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { MapPin, SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import { scoreCities } from "@/lib/scoring"
@@ -13,11 +13,8 @@ import citiesRaw from "@/data/cities.json"
 const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 rounded-full border-2 border-[#e8673a] border-t-transparent animate-spin" />
-        <p className="text-sm text-muted-foreground">Loading map…</p>
-      </div>
+    <div className="w-full h-full flex items-center justify-center bg-neutral-50">
+      <div className="w-5 h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
     </div>
   ),
 })
@@ -40,25 +37,21 @@ export default function ExplorePage() {
   )
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-background">
+    <div className="flex flex-col h-screen overflow-hidden bg-white">
       {/* Header */}
-      <header className="flex-shrink-0 h-14 border-b border-border flex items-center px-5 gap-4">
-        <Link href="/" className="flex items-center gap-2 mr-4">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ backgroundColor: "#e8673a" }}>
-            <MapPin size={12} className="text-white" />
-          </div>
-          <span className="font-semibold text-sm text-foreground">Maple Moving</span>
+      <header className="flex-shrink-0 h-14 border-b border-black/[0.06] flex items-center px-6 gap-4 bg-white">
+        <Link href="/" className="text-sm font-semibold text-black mr-4 hover:opacity-70 transition-opacity">
+          Maple Moving
         </Link>
-        <div className="h-4 w-px bg-border" />
-        <span className="text-sm text-muted-foreground">Explore Canadian Cities</span>
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-muted-foreground hidden sm:block">
-            {rankedCities.length} CMAs · Weights sum to 100%
+        <div className="h-4 w-px bg-black/10" />
+        <span className="text-sm text-neutral-400">Explore Canadian Cities</span>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs text-neutral-400 hidden sm:block font-mono">
+            {rankedCities.length} CMAs · weights sum to 100%
           </span>
-          {/* Mobile toggle */}
           <button
             onClick={() => setShowSliders(!showSliders)}
-            className="sm:hidden flex items-center gap-1.5 text-xs border border-border rounded-lg px-3 py-1.5 text-foreground"
+            className="sm:hidden flex items-center gap-1.5 text-xs border border-black/10 rounded-full px-3 py-1.5 text-black"
           >
             <SlidersHorizontal size={12} />
             Priorities
@@ -67,20 +60,20 @@ export default function ExplorePage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left sidebar — weight sliders */}
+        {/* Left sidebar */}
         <aside
           className={`${
             showSliders ? "flex" : "hidden"
-          } sm:flex flex-col w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-border bg-card overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
+          } sm:flex flex-col w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
         >
-          <div className="p-5">
+          <div className="p-6 pt-8">
             <WeightSliders weights={weights} onChange={setWeights} />
           </div>
         </aside>
 
         {/* Map */}
         <main className="flex-1 flex flex-col overflow-hidden">
-          <div className="flex-1 relative min-h-0">
+          <div className="flex-1 relative min-h-0 bg-neutral-50">
             <CanadaMap
               cities={rankedCities}
               selectedSlug={hoveredSlug ?? undefined}
@@ -88,23 +81,17 @@ export default function ExplorePage() {
             />
           </div>
 
-          {/* Bottom — ranked list */}
-          <div className="flex-shrink-0 h-64 border-t border-border bg-background overflow-y-auto">
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Rankings
-                </h3>
-                <span className="text-xs text-muted-foreground">
-                  Click any city for full breakdown
-                </span>
-              </div>
-              <CityRankingList
-                cities={rankedCities}
-                selectedSlug={hoveredSlug ?? undefined}
-                onHover={setHoveredSlug}
-              />
+          {/* Rankings */}
+          <div className="flex-shrink-0 h-64 border-t border-black/[0.06] bg-white overflow-y-auto">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] sticky top-0 bg-white z-10">
+              <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Rankings</span>
+              <span className="text-xs text-neutral-400">Click any city for details</span>
             </div>
+            <CityRankingList
+              cities={rankedCities}
+              selectedSlug={hoveredSlug ?? undefined}
+              onHover={setHoveredSlug}
+            />
           </div>
         </main>
       </div>
