@@ -1,6 +1,7 @@
 import type { City, Weights, WeatherType, UnitType, FactorScores, ScoredCity } from "./types"
 
 function minMaxNormalize(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) return 50
   if (max === min) return 50
   return Math.round(((value - min) / (max - min)) * 100)
 }
@@ -52,21 +53,26 @@ export function scoreCities(
   unitType: UnitType = "one_bed",
   budget: number = 2000
 ): ScoredCity[] {
-  const walkScores = cities.map((c) => c.walkScore)
-  const crimes     = cities.map((c) => c.crimeIndex)
+  const walkScores  = cities.map((c) => c.walkScore)
+  const crimes      = cities.map((c) => c.crimeIndex)
+  const incomes     = cities.map((c) => c.medianHouseholdIncome)
+  const transits    = cities.map((c) => c.transitScore)
+  const unemps      = cities.map((c) => c.unemploymentRate)
+  const pm25s       = cities.map((c) => c.pm25)
+  const schoolRates = cities.map((c) => c.schoolRating)
 
-  const minWalk  = Math.min(...walkScores), maxWalk  = Math.max(...walkScores)
-  const minCrime = Math.min(...crimes),     maxCrime = Math.max(...crimes)
+  const minWalk  = Math.min(...walkScores),  maxWalk  = Math.max(...walkScores)
+  const minCrime = Math.min(...crimes),      maxCrime = Math.max(...crimes)
+  const minInc   = Math.min(...incomes),     maxInc   = Math.max(...incomes)
+  const minTrans = Math.min(...transits),    maxTrans = Math.max(...transits)
+  const minUnemp = Math.min(...unemps),      maxUnemp = Math.max(...unemps)
+  const minPm25  = Math.min(...pm25s),       maxPm25  = Math.max(...pm25s)
+  const minSch   = Math.min(...schoolRates), maxSch   = Math.max(...schoolRates)
 
-  const totalWeight = weights.walkability + weights.affordability + weights.safety + weights.weather
+  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
   const w = totalWeight === 0
-    ? { walkability: 0.25, affordability: 0.25, safety: 0.25, weather: 0.25 }
-    : {
-        walkability:   weights.walkability   / totalWeight,
-        affordability: weights.affordability / totalWeight,
-        safety:        weights.safety        / totalWeight,
-        weather:       weights.weather       / totalWeight,
-      }
+    ? Object.fromEntries(Object.keys(weights).map((k) => [k, 1 / Object.keys(weights).length])) as Record<keyof Weights, number>
+    : Object.fromEntries(Object.entries(weights).map(([k, v]) => [k, v / totalWeight])) as Record<keyof Weights, number>
 
   const scored = cities.map((city) => {
     const rent = getRent(city, unitType)
@@ -75,13 +81,15 @@ export function scoreCities(
       affordability: affordabilityScore(rent, budget),
       safety:        invertedNormalize(city.crimeIndex, minCrime, maxCrime),
       weather:       weatherScore(city, cities, weatherType),
+      income:        minMaxNormalize(city.medianHouseholdIncome, minInc, maxInc),
+      transit:       minMaxNormalize(city.transitScore, minTrans, maxTrans),
+      employment:    invertedNormalize(city.unemploymentRate, minUnemp, maxUnemp),
+      airQuality:    invertedNormalize(city.pm25, minPm25, maxPm25),
+      education:     minMaxNormalize(city.schoolRating, minSch, maxSch),
     }
 
     const totalScore = Math.round(
-      factorScores.walkability   * w.walkability   +
-      factorScores.affordability * w.affordability +
-      factorScores.safety        * w.safety        +
-      factorScores.weather       * w.weather
+      Object.entries(factorScores).reduce((sum, [key, score]) => sum + score * w[key as keyof Weights], 0)
     )
 
     return { ...city, factorScores, totalScore }

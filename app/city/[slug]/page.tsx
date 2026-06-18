@@ -5,7 +5,10 @@ import { scoreCities } from "@/lib/scoring"
 import citiesRaw from "@/data/cities.json"
 import type { City } from "@/lib/types"
 
-const EQUAL_WEIGHTS = { walkability: 25, affordability: 25, safety: 25, weather: 25 }
+const EQUAL_WEIGHTS = {
+  walkability: 11, affordability: 11, safety: 11, weather: 11,
+  income: 11, transit: 11, employment: 11, airQuality: 12, education: 11,
+}
 
 function scoreColor(score: number) {
   if (score >= 70) return "#16a34a"
@@ -71,13 +74,18 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
           </div>
         </div>
 
-        {/* Raw stats */}
-        <div className="grid grid-cols-4 gap-3 mb-12">
+        {/* Raw stats grid */}
+        <div className="grid grid-cols-3 gap-3 mb-12">
           {[
-            { label: "Avg. 1BR rent",    value: `$${city.avgRent1BR.toLocaleString()}`, sub: "per month" },
-            { label: "Walk Score",        value: String(city.walkScore),                 sub: "out of 100" },
-            { label: "Crime Severity",    value: String(city.crimeIndex),                sub: "national avg 100" },
-            { label: "Avg. temperature",  value: `${city.avgTempC}°C`,                  sub: `${city.annualPrecipMm} mm/yr` },
+            { label: "Avg. 1BR rent",       value: `$${city.avgRent1BR.toLocaleString()}`,          sub: "per month" },
+            { label: "Walk Score",           value: String(city.walkScore),                           sub: "out of 100" },
+            { label: "Crime Severity",       value: String(city.crimeIndex),                          sub: "national avg 100" },
+            { label: "Avg. temperature",     value: `${city.avgTempC}°C`,                            sub: `${city.annualPrecipMm} mm/yr` },
+            { label: "Median income",        value: `$${city.medianHouseholdIncome.toLocaleString()}`, sub: "after-tax household" },
+            { label: "Transit score",        value: String(city.transitScore),                        sub: "out of 100" },
+            { label: "Unemployment",         value: `${city.unemploymentRate}%`,                      sub: "LFS annual" },
+            { label: "PM2.5 air quality",    value: `${city.pm25} μg/m³`,                            sub: "lower is cleaner" },
+            { label: "School rating",        value: `${city.schoolRating}/10`,                        sub: "Fraser Institute" },
           ].map(({ label, value, sub }) => (
             <div key={label} className="bg-neutral-50 p-4 border border-black/[0.05]">
               <div className="text-xs text-neutral-400 mb-3">{label}</div>
@@ -99,12 +107,17 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
           <ScoreRow label="Affordability" score={city.factorScores.affordability} color="#10b981" raw={`$${city.avgRent1BR.toLocaleString()}`} />
           <ScoreRow label="Safety"        score={city.factorScores.safety}        color="#f97316" raw={`CSI ${city.crimeIndex}`} />
           <ScoreRow label="Weather"       score={city.factorScores.weather}       color="#0ea5e9" raw={`${city.avgTempC}°C`} />
+          <ScoreRow label="Income"        score={city.factorScores.income}        color="#8b5cf6" raw={`$${(city.medianHouseholdIncome / 1000).toFixed(0)}k`} />
+          <ScoreRow label="Transit"       score={city.factorScores.transit}       color="#06b6d4" raw={`${city.transitScore}/100`} />
+          <ScoreRow label="Employment"    score={city.factorScores.employment}    color="#84cc16" raw={`${city.unemploymentRate}% unemp`} />
+          <ScoreRow label="Air Quality"   score={city.factorScores.airQuality}    color="#64748b" raw={`${city.pm25} μg/m³`} />
+          <ScoreRow label="Education"     score={city.factorScores.education}     color="#f59e0b" raw={`${city.schoolRating}/10`} />
         </div>
 
         {/* Sources */}
         <p className="mt-6 text-xs text-neutral-400 leading-relaxed">
           <span className="text-neutral-500 font-medium">Sources: </span>
-          Walk Score API · CMHC Rental Market Survey 2024 · Statistics Canada Table 35-10-0026-01 · Environment Canada Climate Normals 1991–2020
+          Walk Score API · CMHC Rental Market Survey 2024 · StatsCan CSI 35-10-0026-01 · Environment Canada 1991–2020 Normals · Canadian Income Survey 11-10-0190-01 · Canadian Public Transit Network Database · Labour Force Survey 14-10-0096-01 · NAPS open.canada.ca · Fraser Institute compareschoolrankings.org
         </p>
 
         <div className="mt-10">

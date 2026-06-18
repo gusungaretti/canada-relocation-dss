@@ -13,7 +13,12 @@
     "avgRent3BR": 4100,
     "crimeIndex": 95.2,
     "avgTempC": 11.5,
-    "annualPrecipMm": 1154
+    "annualPrecipMm": 1154,
+    "medianHouseholdIncome": 75000,
+    "transitScore": 87,
+    "unemploymentRate": 5.4,
+    "pm25": 6.8,
+    "schoolRating": 6.9
   },
   {
     "id": "915",
@@ -29,15 +34,20 @@
     "avgRent3BR": 3500,
     "crimeIndex": 106.1,
     "avgTempC": 10.5,
-    "annualPrecipMm": 608
+    "annualPrecipMm": 608,
+    "medianHouseholdIncome": 72000,
+    "transitScore": 65,
+    "unemploymentRate": 4.6,
+    "pm25": 4.1,
+    "schoolRating": 7.6
   },
   {
     "id": "935",
     "slug": "kelowna",
     "name": "Kelowna",
     "province": "BC",
-    "lat": 49.8880,
-    "lng": -119.4960,
+    "lat": 49.888,
+    "lng": -119.496,
     "walkScore": 42,
     "avgRentStudio": 1400,
     "avgRent1BR": 1900,
@@ -45,7 +55,12 @@
     "avgRent3BR": 3150,
     "crimeIndex": 83.4,
     "avgTempC": 9.8,
-    "annualPrecipMm": 318
+    "annualPrecipMm": 318,
+    "medianHouseholdIncome": 70000,
+    "transitScore": 32,
+    "unemploymentRate": 5.2,
+    "pm25": 7.2,
+    "schoolRating": 6.6
   },
   {
     "id": "930",
@@ -61,7 +76,12 @@
     "avgRent3BR": 2750,
     "crimeIndex": 100.3,
     "avgTempC": 10.8,
-    "annualPrecipMm": 1541
+    "annualPrecipMm": 1541,
+    "medianHouseholdIncome": 68000,
+    "transitScore": 28,
+    "unemploymentRate": 5.6,
+    "pm25": 7.8,
+    "schoolRating": 6.3
   },
   {
     "id": "825",
@@ -77,7 +97,12 @@
     "avgRent3BR": 3000,
     "crimeIndex": 83.9,
     "avgTempC": 4.7,
-    "annualPrecipMm": 413
+    "annualPrecipMm": 413,
+    "medianHouseholdIncome": 89000,
+    "transitScore": 72,
+    "unemploymentRate": 6.9,
+    "pm25": 5.9,
+    "schoolRating": 7.3
   },
   {
     "id": "840",
@@ -93,7 +118,12 @@
     "avgRent3BR": 2250,
     "crimeIndex": 114.4,
     "avgTempC": 3.3,
-    "annualPrecipMm": 461
+    "annualPrecipMm": 461,
+    "medianHouseholdIncome": 82000,
+    "transitScore": 68,
+    "unemploymentRate": 7.3,
+    "pm25": 7.4,
+    "schoolRating": 6.9
   },
   {
     "id": "745",
@@ -101,7 +131,7 @@
     "name": "Saskatoon",
     "province": "SK",
     "lat": 52.1332,
-    "lng": -106.6700,
+    "lng": -106.67,
     "walkScore": 48,
     "avgRentStudio": 850,
     "avgRent1BR": 1150,
@@ -109,7 +139,12 @@
     "avgRent3BR": 1900,
     "crimeIndex": 133.7,
     "avgTempC": 2.5,
-    "annualPrecipMm": 350
+    "annualPrecipMm": 350,
+    "medianHouseholdIncome": 74000,
+    "transitScore": 45,
+    "unemploymentRate": 5.9,
+    "pm25": 5.6,
+    "schoolRating": 6.1
   },
   {
     "id": "740",
@@ -125,7 +160,12 @@
     "avgRent3BR": 1850,
     "crimeIndex": 152.3,
     "avgTempC": 3.0,
-    "annualPrecipMm": 394
+    "annualPrecipMm": 394,
+    "medianHouseholdIncome": 73000,
+    "transitScore": 38,
+    "unemploymentRate": 5.6,
+    "pm25": 5.4,
+    "schoolRating": 5.9
   },
   {
     "id": "602",
@@ -141,7 +181,12 @@
     "avgRent3BR": 2000,
     "crimeIndex": 148.2,
     "avgTempC": 2.8,
-    "annualPrecipMm": 521
+    "annualPrecipMm": 521,
+    "medianHouseholdIncome": 67000,
+    "transitScore": 62,
+    "unemploymentRate": 5.4,
+    "pm25": 6.2,
+    "schoolRating": 5.6
   },
   {
     "id": "535",
@@ -157,7 +202,12 @@
     "avgRent3BR": 3650,
     "crimeIndex": 67.4,
     "avgTempC": 9.1,
-    "annualPrecipMm": 831
+    "annualPrecipMm": 831,
+    "medianHouseholdIncome": 78000,
+    "transitScore": 95,
+    "unemploymentRate": 6.6,
+    "pm25": 8.8,
+    "schoolRating": 6.6
   },
   {
     "id": "505",
@@ -173,7 +223,12 @@
     "avgRent3BR": 3200,
     "crimeIndex": 55.3,
     "avgTempC": 6.7,
-    "annualPrecipMm": 919
+    "annualPrecipMm": 919,
+    "medianHouseholdIncome": 86000,
+    "transitScore": 78,
+    "unemploymentRate": 5.1,
+    "pm25": 7.4,
+    "schoolRating": 7.1
   },
   {
     "id": "537",
@@ -189,7 +244,12 @@
     "avgRent3BR": 2750,
     "crimeIndex": 69.2,
     "avgTempC": 9.3,
-    "annualPrecipMm": 889
+    "annualPrecipMm": 889,
+    "medianHouseholdIncome": 71000,
+    "transitScore": 55,
+    "unemploymentRate": 6.1,
+    "pm25": 9.3,
+    "schoolRating": 5.9
   },
   {
     "id": "541",
@@ -205,7 +265,12 @@
     "avgRent3BR": 2550,
     "crimeIndex": 59.1,
     "avgTempC": 8.6,
-    "annualPrecipMm": 877
+    "annualPrecipMm": 877,
+    "medianHouseholdIncome": 77000,
+    "transitScore": 52,
+    "unemploymentRate": 5.6,
+    "pm25": 7.9,
+    "schoolRating": 6.9
   },
   {
     "id": "555",
@@ -221,7 +286,12 @@
     "avgRent3BR": 2500,
     "crimeIndex": 68.3,
     "avgTempC": 9.4,
-    "annualPrecipMm": 962
+    "annualPrecipMm": 962,
+    "medianHouseholdIncome": 68000,
+    "transitScore": 50,
+    "unemploymentRate": 6.3,
+    "pm25": 7.7,
+    "schoolRating": 6.3
   },
   {
     "id": "529",
@@ -237,7 +307,12 @@
     "avgRent3BR": 2600,
     "crimeIndex": 57.2,
     "avgTempC": 8.3,
-    "annualPrecipMm": 851
+    "annualPrecipMm": 851,
+    "medianHouseholdIncome": 74000,
+    "transitScore": 44,
+    "unemploymentRate": 6.2,
+    "pm25": 8.2,
+    "schoolRating": 5.6
   },
   {
     "id": "562",
@@ -253,7 +328,12 @@
     "avgRent3BR": 2150,
     "crimeIndex": 64.1,
     "avgTempC": 10.3,
-    "annualPrecipMm": 843
+    "annualPrecipMm": 843,
+    "medianHouseholdIncome": 64000,
+    "transitScore": 42,
+    "unemploymentRate": 7.6,
+    "pm25": 10.8,
+    "schoolRating": 5.3
   },
   {
     "id": "568",
@@ -269,7 +349,12 @@
     "avgRent3BR": 2700,
     "crimeIndex": 61.4,
     "avgTempC": 7.1,
-    "annualPrecipMm": 921
+    "annualPrecipMm": 921,
+    "medianHouseholdIncome": 73000,
+    "transitScore": 32,
+    "unemploymentRate": 5.9,
+    "pm25": 6.7,
+    "schoolRating": 6.1
   },
   {
     "id": "559",
@@ -277,7 +362,7 @@
     "name": "Kingston",
     "province": "ON",
     "lat": 44.2312,
-    "lng": -76.4860,
+    "lng": -76.486,
     "walkScore": 55,
     "avgRentStudio": 1100,
     "avgRent1BR": 1450,
@@ -285,7 +370,12 @@
     "avgRent3BR": 2450,
     "crimeIndex": 53.2,
     "avgTempC": 8.0,
-    "annualPrecipMm": 929
+    "annualPrecipMm": 929,
+    "medianHouseholdIncome": 70000,
+    "transitScore": 40,
+    "unemploymentRate": 5.3,
+    "pm25": 7.0,
+    "schoolRating": 6.6
   },
   {
     "id": "570",
@@ -301,7 +391,12 @@
     "avgRent3BR": 2350,
     "crimeIndex": 58.3,
     "avgTempC": 7.5,
-    "annualPrecipMm": 808
+    "annualPrecipMm": 808,
+    "medianHouseholdIncome": 64000,
+    "transitScore": 33,
+    "unemploymentRate": 6.6,
+    "pm25": 6.6,
+    "schoolRating": 5.9
   },
   {
     "id": "543",
@@ -317,7 +412,12 @@
     "avgRent3BR": 2250,
     "crimeIndex": 73.1,
     "avgTempC": 9.1,
-    "annualPrecipMm": 830
+    "annualPrecipMm": 830,
+    "medianHouseholdIncome": 65000,
+    "transitScore": 37,
+    "unemploymentRate": 7.1,
+    "pm25": 8.8,
+    "schoolRating": 5.6
   },
   {
     "id": "580",
@@ -325,7 +425,7 @@
     "name": "Greater Sudbury",
     "province": "ON",
     "lat": 46.4917,
-    "lng": -80.9930,
+    "lng": -80.993,
     "walkScore": 40,
     "avgRentStudio": 700,
     "avgRent1BR": 950,
@@ -333,7 +433,12 @@
     "avgRent3BR": 1600,
     "crimeIndex": 63.2,
     "avgTempC": 3.9,
-    "annualPrecipMm": 842
+    "annualPrecipMm": 842,
+    "medianHouseholdIncome": 67000,
+    "transitScore": 30,
+    "unemploymentRate": 6.9,
+    "pm25": 5.7,
+    "schoolRating": 5.3
   },
   {
     "id": "595",
@@ -349,7 +454,12 @@
     "avgRent3BR": 1650,
     "crimeIndex": 230.5,
     "avgTempC": 1.5,
-    "annualPrecipMm": 688
+    "annualPrecipMm": 688,
+    "medianHouseholdIncome": 69000,
+    "transitScore": 28,
+    "unemploymentRate": 6.4,
+    "pm25": 6.0,
+    "schoolRating": 5.1
   },
   {
     "id": "462",
@@ -365,7 +475,12 @@
     "avgRent3BR": 2000,
     "crimeIndex": 49.1,
     "avgTempC": 6.8,
-    "annualPrecipMm": 979
+    "annualPrecipMm": 979,
+    "medianHouseholdIncome": 64000,
+    "transitScore": 92,
+    "unemploymentRate": 6.9,
+    "pm25": 8.4,
+    "schoolRating": 6.3
   },
   {
     "id": "421",
@@ -373,7 +488,7 @@
     "name": "Québec City",
     "province": "QC",
     "lat": 46.8139,
-    "lng": -71.2080,
+    "lng": -71.208,
     "walkScore": 57,
     "avgRentStudio": 750,
     "avgRent1BR": 1000,
@@ -381,7 +496,12 @@
     "avgRent3BR": 1650,
     "crimeIndex": 50.2,
     "avgTempC": 4.2,
-    "annualPrecipMm": 1184
+    "annualPrecipMm": 1184,
+    "medianHouseholdIncome": 72000,
+    "transitScore": 65,
+    "unemploymentRate": 4.6,
+    "pm25": 6.7,
+    "schoolRating": 7.1
   },
   {
     "id": "433",
@@ -397,14 +517,19 @@
     "avgRent3BR": 1500,
     "crimeIndex": 46.3,
     "avgTempC": 4.9,
-    "annualPrecipMm": 1084
+    "annualPrecipMm": 1084,
+    "medianHouseholdIncome": 61000,
+    "transitScore": 40,
+    "unemploymentRate": 5.6,
+    "pm25": 6.2,
+    "schoolRating": 6.6
   },
   {
     "id": "442",
     "slug": "trois-rivieres",
     "name": "Trois-Rivières",
     "province": "QC",
-    "lat": 46.3440,
+    "lat": 46.344,
     "lng": -72.5432,
     "walkScore": 50,
     "avgRentStudio": 650,
@@ -413,7 +538,12 @@
     "avgRent3BR": 1400,
     "crimeIndex": 55.4,
     "avgTempC": 5.3,
-    "annualPrecipMm": 977
+    "annualPrecipMm": 977,
+    "medianHouseholdIncome": 59000,
+    "transitScore": 36,
+    "unemploymentRate": 6.1,
+    "pm25": 6.8,
+    "schoolRating": 6.1
   },
   {
     "id": "408",
@@ -429,7 +559,12 @@
     "avgRent3BR": 1300,
     "crimeIndex": 38.1,
     "avgTempC": 2.9,
-    "annualPrecipMm": 921
+    "annualPrecipMm": 921,
+    "medianHouseholdIncome": 63000,
+    "transitScore": 28,
+    "unemploymentRate": 6.6,
+    "pm25": 5.6,
+    "schoolRating": 6.3
   },
   {
     "id": "205",
@@ -445,7 +580,12 @@
     "avgRent3BR": 3100,
     "crimeIndex": 86.2,
     "avgTempC": 7.9,
-    "annualPrecipMm": 1474
+    "annualPrecipMm": 1474,
+    "medianHouseholdIncome": 72000,
+    "transitScore": 58,
+    "unemploymentRate": 5.6,
+    "pm25": 5.1,
+    "schoolRating": 6.6
   },
   {
     "id": "305",
@@ -461,7 +601,12 @@
     "avgRent3BR": 2250,
     "crimeIndex": 66.1,
     "avgTempC": 5.8,
-    "annualPrecipMm": 1093
+    "annualPrecipMm": 1093,
+    "medianHouseholdIncome": 64000,
+    "transitScore": 38,
+    "unemploymentRate": 6.3,
+    "pm25": 4.9,
+    "schoolRating": 6.1
   },
   {
     "id": "310",
@@ -477,7 +622,12 @@
     "avgRent3BR": 1850,
     "crimeIndex": 72.4,
     "avgTempC": 5.4,
-    "annualPrecipMm": 1370
+    "annualPrecipMm": 1370,
+    "medianHouseholdIncome": 61000,
+    "transitScore": 33,
+    "unemploymentRate": 7.6,
+    "pm25": 5.7,
+    "schoolRating": 5.6
   },
   {
     "id": "001",
@@ -493,7 +643,12 @@
     "avgRent3BR": 1750,
     "crimeIndex": 73.1,
     "avgTempC": 5.5,
-    "annualPrecipMm": 1514
+    "annualPrecipMm": 1514,
+    "medianHouseholdIncome": 72000,
+    "transitScore": 40,
+    "unemploymentRate": 6.1,
+    "pm25": 4.3,
+    "schoolRating": 6.3
   },
   {
     "id": "328",
@@ -509,7 +664,12 @@
     "avgRent3BR": 1900,
     "crimeIndex": 62.3,
     "avgTempC": 6.2,
-    "annualPrecipMm": 1092
+    "annualPrecipMm": 1092,
+    "medianHouseholdIncome": 67000,
+    "transitScore": 32,
+    "unemploymentRate": 5.9,
+    "pm25": 4.6,
+    "schoolRating": 6.6
   },
   {
     "id": "550",
@@ -525,7 +685,12 @@
     "avgRent3BR": 2950,
     "crimeIndex": 51.4,
     "avgTempC": 7.8,
-    "annualPrecipMm": 872
+    "annualPrecipMm": 872,
+    "medianHouseholdIncome": 79000,
+    "transitScore": 46,
+    "unemploymentRate": 5.3,
+    "pm25": 7.9,
+    "schoolRating": 7.1
   },
   {
     "id": "502",
@@ -541,7 +706,12 @@
     "avgRent3BR": 2400,
     "crimeIndex": 88.3,
     "avgTempC": 8.2,
-    "annualPrecipMm": 908
+    "annualPrecipMm": 908,
+    "medianHouseholdIncome": 68000,
+    "transitScore": 35,
+    "unemploymentRate": 6.6,
+    "pm25": 8.4,
+    "schoolRating": 5.9
   },
   {
     "id": "522",
@@ -557,7 +727,12 @@
     "avgRent3BR": 2250,
     "crimeIndex": 61.8,
     "avgTempC": 8.1,
-    "annualPrecipMm": 870
+    "annualPrecipMm": 870,
+    "medianHouseholdIncome": 63000,
+    "transitScore": 28,
+    "unemploymentRate": 7.1,
+    "pm25": 6.7,
+    "schoolRating": 5.9
   },
   {
     "id": "810",
@@ -573,7 +748,12 @@
     "avgRent3BR": 1850,
     "crimeIndex": 116.2,
     "avgTempC": 6.3,
-    "annualPrecipMm": 388
+    "annualPrecipMm": 388,
+    "medianHouseholdIncome": 72000,
+    "transitScore": 30,
+    "unemploymentRate": 6.6,
+    "pm25": 5.6,
+    "schoolRating": 6.6
   },
   {
     "id": "925",
@@ -589,7 +769,12 @@
     "avgRent3BR": 2400,
     "crimeIndex": 122.5,
     "avgTempC": 9.0,
-    "annualPrecipMm": 282
+    "annualPrecipMm": 282,
+    "medianHouseholdIncome": 69000,
+    "transitScore": 36,
+    "unemploymentRate": 5.9,
+    "pm25": 7.8,
+    "schoolRating": 6.1
   },
   {
     "id": "938",
@@ -605,6 +790,11 @@
     "avgRent3BR": 2700,
     "crimeIndex": 115.3,
     "avgTempC": 10.1,
-    "annualPrecipMm": 1200
+    "annualPrecipMm": 1200,
+    "medianHouseholdIncome": 67000,
+    "transitScore": 42,
+    "unemploymentRate": 6.1,
+    "pm25": 5.9,
+    "schoolRating": 6.3
   }
 ]

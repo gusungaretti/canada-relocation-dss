@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import type { ScoredCity } from "@/lib/types"
+import type { ScoredCity, UnitType } from "@/lib/types"
 
 function scoreHex(score: number) {
   if (score >= 70) return "#16a34a"
@@ -9,13 +9,23 @@ function scoreHex(score: number) {
   return "#dc2626"
 }
 
+function getRent(city: ScoredCity, unitType: UnitType): number {
+  switch (unitType) {
+    case "studio":    return city.avgRentStudio
+    case "one_bed":   return city.avgRent1BR
+    case "two_bed":   return city.avgRent2BR
+    case "three_bed": return city.avgRent3BR
+  }
+}
+
 interface Props {
   cities: ScoredCity[]
   selectedSlug?: string
   onHover?: (slug: string | null) => void
+  unitType: UnitType
 }
 
-export default function CityRankingList({ cities, selectedSlug, onHover }: Props) {
+export default function CityRankingList({ cities, selectedSlug, onHover, unitType }: Props) {
   const router = useRouter()
 
   return (
@@ -48,7 +58,7 @@ export default function CityRankingList({ cities, selectedSlug, onHover }: Props
                   </span>
                 </div>
                 <div className="flex items-center gap-3 mt-0.5">
-                  <span className="text-[11px] text-neutral-400 font-mono">${city.avgRent1BR.toLocaleString()}/mo</span>
+                  <span className="text-[11px] text-neutral-400 font-mono">${getRent(city, unitType).toLocaleString()}/mo</span>
                   <span className="text-[11px] text-neutral-300">·</span>
                   <span className="text-[11px] text-neutral-400 font-mono">Walk {city.walkScore}</span>
                   <span className="text-[11px] text-neutral-300">·</span>
@@ -56,7 +66,7 @@ export default function CityRankingList({ cities, selectedSlug, onHover }: Props
                 </div>
               </div>
               <span className="flex-shrink-0 text-sm font-mono font-bold" style={{ color }}>
-                {city.totalScore}
+                {Number.isFinite(city.totalScore) ? city.totalScore : "—"}
               </span>
             </div>
           </button>

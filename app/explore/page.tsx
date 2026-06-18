@@ -20,10 +20,15 @@ const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
 })
 
 const DEFAULT_WEIGHTS: Weights = {
-  walkability: 25,
-  affordability: 25,
-  safety: 25,
-  weather: 25,
+  walkability: 0,
+  affordability: 0,
+  safety: 0,
+  weather: 0,
+  income: 0,
+  transit: 0,
+  employment: 0,
+  airQuality: 0,
+  education: 0,
 }
 
 export default function ExplorePage() {
@@ -103,6 +108,7 @@ export default function ExplorePage() {
               cities={rankedCities}
               selectedSlug={hoveredSlug ?? undefined}
               onHover={setHoveredSlug}
+              unitType={unitType}
             />
           </div>
         </main>
