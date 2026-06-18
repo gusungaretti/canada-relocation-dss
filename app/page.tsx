@@ -28,7 +28,7 @@ export default function LandingPage() {
         <section className="border-b border-black/[0.06]">
           <div className="max-w-6xl mx-auto px-8 py-14 grid grid-cols-3 divide-x divide-black/[0.06]">
             {[
-              { v: "30",   l: "Census Metro Areas" },
+              { v: "38",   l: "Census Metro Areas" },
               { v: "4",    l: "Data dimensions" },
               { v: "100%", l: "Personalized to you" },
             ].map(({ v, l }) => (
