@@ -1,3 +1,5 @@
+export type WeatherType = "warm" | "mild" | "four_seasons" | "dry"
+
 export interface City {
   id: string
   slug: string

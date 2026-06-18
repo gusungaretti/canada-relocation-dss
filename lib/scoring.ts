@@ -1,4 +1,4 @@
-import type { City, Weights, FactorScores, ScoredCity } from "./types"
+import type { City, Weights, WeatherType, FactorScores, ScoredCity } from "./types"
 
 function minMaxNormalize(value: number, min: number, max: number): number {
   if (max === min) return 50
@@ -9,60 +9,75 @@ function invertedNormalize(value: number, min: number, max: number): number {
   return 100 - minMaxNormalize(value, min, max)
 }
 
-function weatherComfort(tempC: number, precipMm: number, allCities: City[]): number {
-  const temps = allCities.map((c) => c.avgTempC)
-  const precips = allCities.map((c) => c.annualPrecipMm)
-  const minTemp = Math.min(...temps)
-  const maxTemp = Math.max(...temps)
-  const minPrecip = Math.min(...precips)
-  const maxPrecip = Math.max(...precips)
-
-  // Ideal annual avg temp ~9°C (Victoria/Toronto range). Bell curve falloff.
-  const idealTemp = 9
-  const tempRange = Math.max(maxTemp - minTemp, 1)
-  const tempComfort = Math.max(0, 100 - Math.abs(tempC - idealTemp) * (100 / tempRange) * 1.6)
-
-  // Lower precip = better
-  const precipComfort = 100 - minMaxNormalize(precipMm, minPrecip, maxPrecip)
-
-  return Math.round(tempComfort * 0.5 + precipComfort * 0.5)
+function bellCurve(value: number, ideal: number, range: number): number {
+  return Math.max(0, Math.round(100 - Math.abs(value - ideal) * (100 / range) * 1.6))
 }
 
-export function scoreCities(cities: City[], weights: Weights): ScoredCity[] {
-  const walkScores = cities.map((c) => c.walkScore)
-  const rents = cities.map((c) => c.avgRent1BR)
-  const crimes = cities.map((c) => c.crimeIndex)
+function weatherScore(city: City, allCities: City[], type: WeatherType): number {
+  const temps   = allCities.map((c) => c.avgTempC)
+  const precips = allCities.map((c) => c.annualPrecipMm)
+  const minTemp = Math.min(...temps),   maxTemp = Math.max(...temps)
+  const minPrecip = Math.min(...precips), maxPrecip = Math.max(...precips)
+  const range = Math.max(maxTemp - minTemp, 1)
 
-  const minWalk = Math.min(...walkScores)
-  const maxWalk = Math.max(...walkScores)
-  const minRent = Math.min(...rents)
-  const maxRent = Math.max(...rents)
-  const minCrime = Math.min(...crimes)
-  const maxCrime = Math.max(...crimes)
+  const dryScore  = invertedNormalize(city.annualPrecipMm, minPrecip, maxPrecip)
+  const warmScore = minMaxNormalize(city.avgTempC, minTemp, maxTemp)
+
+  switch (type) {
+    case "warm":
+      // Reward highest annual avg temp — Windsor, Victoria, Vancouver rise
+      return Math.round(warmScore * 0.85 + dryScore * 0.15)
+
+    case "mild":
+      // Bell curve around 10°C annual avg (Vancouver/Victoria sweet spot), precip less penalised
+      return Math.round(bellCurve(city.avgTempC, 10, range) * 0.75 + dryScore * 0.25)
+
+    case "four_seasons":
+      // Current formula: comfortable mid-range temp + reasonably dry
+      return Math.round(bellCurve(city.avgTempC, 8, range) * 0.5 + dryScore * 0.5)
+
+    case "dry":
+      // Cold is fine — just keep the rain and snow down (Calgary, Regina, Saskatoon win)
+      return dryScore
+  }
+}
+
+export function scoreCities(
+  cities: City[],
+  weights: Weights,
+  weatherType: WeatherType = "four_seasons"
+): ScoredCity[] {
+  const walkScores = cities.map((c) => c.walkScore)
+  const rents      = cities.map((c) => c.avgRent1BR)
+  const crimes     = cities.map((c) => c.crimeIndex)
+
+  const minWalk = Math.min(...walkScores), maxWalk = Math.max(...walkScores)
+  const minRent = Math.min(...rents),      maxRent = Math.max(...rents)
+  const minCrime = Math.min(...crimes),    maxCrime = Math.max(...crimes)
 
   const totalWeight = weights.walkability + weights.affordability + weights.safety + weights.weather
   const w = totalWeight === 0
     ? { walkability: 0.25, affordability: 0.25, safety: 0.25, weather: 0.25 }
     : {
-        walkability: weights.walkability / totalWeight,
+        walkability:   weights.walkability   / totalWeight,
         affordability: weights.affordability / totalWeight,
-        safety: weights.safety / totalWeight,
-        weather: weights.weather / totalWeight,
+        safety:        weights.safety        / totalWeight,
+        weather:       weights.weather       / totalWeight,
       }
 
   const scored = cities.map((city) => {
     const factorScores: FactorScores = {
-      walkability: minMaxNormalize(city.walkScore, minWalk, maxWalk),
+      walkability:   minMaxNormalize(city.walkScore, minWalk, maxWalk),
       affordability: invertedNormalize(city.avgRent1BR, minRent, maxRent),
-      safety: invertedNormalize(city.crimeIndex, minCrime, maxCrime),
-      weather: weatherComfort(city.avgTempC, city.annualPrecipMm, cities),
+      safety:        invertedNormalize(city.crimeIndex, minCrime, maxCrime),
+      weather:       weatherScore(city, cities, weatherType),
     }
 
     const totalScore = Math.round(
-      factorScores.walkability * w.walkability +
+      factorScores.walkability   * w.walkability   +
       factorScores.affordability * w.affordability +
-      factorScores.safety * w.safety +
-      factorScores.weather * w.weather
+      factorScores.safety        * w.safety        +
+      factorScores.weather       * w.weather
     )
 
     return { ...city, factorScores, totalScore }

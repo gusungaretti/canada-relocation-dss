@@ -1,6 +1,15 @@
 "use client"
 
-import type { Weights } from "@/lib/types"
+import { useState } from "react"
+import { Lock, LockOpen } from "lucide-react"
+import type { Weights, WeatherType } from "@/lib/types"
+
+const WEATHER_TYPES: { value: WeatherType; label: string; hint: string }[] = [
+  { value: "warm",         label: "Warm",          hint: "High annual avg temp — Windsor, Victoria, Toronto" },
+  { value: "mild",         label: "Mild",           hint: "Moderate year-round — Vancouver, Victoria" },
+  { value: "four_seasons", label: "Four seasons",   hint: "Distinct seasons — Ottawa, Montreal, Calgary" },
+  { value: "dry",          label: "Dry",            hint: "Low rain & snow — Calgary, Regina, Saskatoon" },
+]
 
 const FACTORS = [
   { key: "walkability"   as keyof Weights, label: "Walkability",   sub: "Walk Score",      color: "#3b82f6", trackColor: "rgba(59,130,246,0.2)" },
@@ -12,28 +21,60 @@ const FACTORS = [
 interface Props {
   weights: Weights
   onChange: (weights: Weights) => void
+  weatherType: WeatherType
+  onWeatherTypeChange: (t: WeatherType) => void
 }
 
-export default function WeightSliders({ weights, onChange }: Props) {
+export default function WeightSliders({ weights, onChange, weatherType, onWeatherTypeChange }: Props) {
+  const [locked, setLocked] = useState<Set<keyof Weights>>(new Set())
+
+  function toggleLock(key: keyof Weights) {
+    setLocked((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
   function handleChange(key: keyof Weights, newValue: number) {
     const clamped = Math.max(0, Math.min(100, newValue))
-    const others = FACTORS.filter((f) => f.key !== key)
-    const currentOthersTotal = others.reduce((sum, f) => sum + weights[f.key], 0)
-    const remaining = 100 - clamped
-    const updated = { ...weights, [key]: clamped }
 
-    if (currentOthersTotal === 0) {
-      const each = remaining / others.length
-      others.forEach((f) => { updated[f.key] = Math.round(each) })
+    // Sliders that can absorb the change: not the active one, not locked
+    const flexible = FACTORS.filter((f) => f.key !== key && !locked.has(f.key))
+    const fixedTotal = FACTORS.filter((f) => f.key !== key && locked.has(f.key))
+      .reduce((sum, f) => sum + weights[f.key], 0)
+
+    // Can't exceed what's left after locked sliders
+    const maxAllowed = Math.max(0, 100 - fixedTotal)
+    const value = Math.min(clamped, maxAllowed)
+    const remaining = 100 - fixedTotal - value
+
+    const updated: Weights = { ...weights, [key]: value }
+
+    if (flexible.length === 0) {
+      // Nothing flexible — just set this one, locked ones stay, accept the imbalance only if everything is locked
+      onChange(updated)
+      return
+    }
+
+    const flexTotal = flexible.reduce((sum, f) => sum + weights[f.key], 0)
+
+    if (flexTotal === 0) {
+      const each = remaining / flexible.length
+      flexible.forEach((f) => { updated[f.key] = Math.round(each) })
     } else {
-      others.forEach((f) => {
-        updated[f.key] = Math.round((weights[f.key] / currentOthersTotal) * remaining)
+      flexible.forEach((f) => {
+        updated[f.key] = Math.round((weights[f.key] / flexTotal) * remaining)
       })
     }
 
-    const newTotal = Object.values(updated).reduce((a, b) => a + b, 0)
-    const diff = 100 - newTotal
-    if (diff !== 0) updated[others[0].key] = Math.max(0, updated[others[0].key] + diff)
+    // Fix rounding drift: nudge the first flexible slider
+    const total = Object.values(updated).reduce((a, b) => a + b, 0)
+    const drift = 100 - total
+    if (drift !== 0 && flexible.length > 0) {
+      updated[flexible[0].key] = Math.max(0, updated[flexible[0].key] + drift)
+    }
 
     onChange(updated)
   }
@@ -48,17 +89,52 @@ export default function WeightSliders({ weights, onChange }: Props) {
       <div className="flex flex-col gap-7">
         {FACTORS.map(({ key, label, sub, color, trackColor }) => {
           const value = weights[key]
+          const isLocked = locked.has(key)
 
           return (
             <div key={key}>
-              <div className="flex items-baseline justify-between mb-3">
-                <div>
-                  <span className="text-sm font-medium text-black">{label}</span>
-                  <span className="text-xs text-neutral-400 ml-2">{sub}</span>
+              {key === "weather" && (
+                <div className="mb-4">
+                  <p className="text-[11px] text-neutral-400 mb-2">Climate preference</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {WEATHER_TYPES.map((wt) => (
+                      <button
+                        key={wt.value}
+                        onClick={() => onWeatherTypeChange(wt.value)}
+                        title={wt.hint}
+                        className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                          weatherType === wt.value
+                            ? "bg-black text-white border-black"
+                            : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
+                        }`}
+                      >
+                        {wt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <span className="text-sm font-mono font-semibold tabular-nums" style={{ color }}>
-                  {value}%
-                </span>
+              )}
+              <div className="flex items-baseline justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-black">{label}</span>
+                  <span className="text-xs text-neutral-400">{sub}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-mono font-semibold tabular-nums" style={{ color }}>
+                    {value}%
+                  </span>
+                  <button
+                    onClick={() => toggleLock(key)}
+                    title={isLocked ? "Unlock this slider" : "Lock this value"}
+                    className={`flex items-center justify-center w-5 h-5 rounded transition-colors ${
+                      isLocked
+                        ? "text-neutral-700"
+                        : "text-neutral-300 hover:text-neutral-500"
+                    }`}
+                  >
+                    {isLocked ? <Lock size={12} /> : <LockOpen size={12} />}
+                  </button>
+                </div>
               </div>
 
               <div className="relative">
@@ -67,9 +143,9 @@ export default function WeightSliders({ weights, onChange }: Props) {
                   style={{
                     width: `${value}%`,
                     height: "2px",
-                    backgroundColor: color,
+                    backgroundColor: isLocked ? "rgba(0,0,0,0.2)" : color,
                     borderRadius: "2px",
-                    opacity: 0.9,
+                    opacity: isLocked ? 0.5 : 0.9,
                     transition: "width 0.15s ease",
                   }}
                 />
@@ -79,9 +155,13 @@ export default function WeightSliders({ weights, onChange }: Props) {
                   max={100}
                   step={1}
                   value={value}
+                  disabled={isLocked}
                   onChange={(e) => handleChange(key, parseInt(e.target.value))}
-                  className="relative w-full"
-                  style={{ "--thumb-color": color, "--track-fill": trackColor } as React.CSSProperties}
+                  className={`relative w-full ${isLocked ? "opacity-40 cursor-not-allowed" : ""}`}
+                  style={{
+                    "--thumb-color": isLocked ? "#999" : color,
+                    "--track-fill": trackColor,
+                  } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -90,7 +170,10 @@ export default function WeightSliders({ weights, onChange }: Props) {
       </div>
 
       <button
-        onClick={() => onChange({ walkability: 25, affordability: 25, safety: 25, weather: 25 })}
+        onClick={() => {
+          setLocked(new Set())
+          onChange({ walkability: 25, affordability: 25, safety: 25, weather: 25 })
+        }}
         className="mt-8 pt-6 border-t border-black/[0.06] text-xs text-neutral-400 hover:text-black transition-colors cursor-pointer text-left"
       >
         Reset to equal weights

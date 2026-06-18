@@ -7,7 +7,7 @@ import { SlidersHorizontal } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import { scoreCities } from "@/lib/scoring"
-import type { Weights } from "@/lib/types"
+import type { Weights, WeatherType } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
 
 const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
@@ -28,12 +28,13 @@ const DEFAULT_WEIGHTS: Weights = {
 
 export default function ExplorePage() {
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS)
+  const [weatherType, setWeatherType] = useState<WeatherType>("four_seasons")
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const [showSliders, setShowSliders] = useState(false)
 
   const rankedCities = useMemo(
-    () => scoreCities(citiesRaw as Parameters<typeof scoreCities>[0], weights),
-    [weights]
+    () => scoreCities(citiesRaw as Parameters<typeof scoreCities>[0], weights, weatherType),
+    [weights, weatherType]
   )
 
   return (
@@ -67,7 +68,12 @@ export default function ExplorePage() {
           } sm:flex flex-col w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
         >
           <div className="p-6 pt-8">
-            <WeightSliders weights={weights} onChange={setWeights} />
+            <WeightSliders
+              weights={weights}
+              onChange={setWeights}
+              weatherType={weatherType}
+              onWeatherTypeChange={setWeatherType}
+            />
           </div>
         </aside>
 
