@@ -100,6 +100,7 @@ export default function ExplorePage() {
               cities={rankedCities}
               selectedSlug={hoveredSlug ?? undefined}
               onCityClick={() => {}}
+              hasActiveFactors={hasActiveFactors}
             />
           </div>
 

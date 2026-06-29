@@ -28,9 +28,10 @@ interface Props {
   cities: ScoredCity[]
   selectedSlug?: string
   onCityClick?: (slug: string) => void
+  hasActiveFactors: boolean
 }
 
-export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) {
+export default function CanadaMap({ cities, selectedSlug, onCityClick, hasActiveFactors }: Props) {
   const router = useRouter()
 
   // GeoJSON loaded once — never re-fetched on re-render
@@ -100,8 +101,8 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
           style={{ left: tooltip.x, top: tooltip.y - 52, transform: "translateX(-50%)" }}
         >
           <div className="text-xs font-medium text-black">{tooltip.name}</div>
-          <div className="text-xs font-mono font-semibold mt-0.5" style={{ color: scoreToColor(tooltip.score) }}>
-            {tooltip.score}
+          <div className="text-xs font-mono font-semibold mt-0.5" style={{ color: hasActiveFactors ? scoreToColor(tooltip.score) : "#9ca3af" }}>
+            {hasActiveFactors ? tooltip.score : "—"}
           </div>
         </div>
       )}
@@ -137,7 +138,7 @@ export default function CanadaMap({ cities, selectedSlug, onCityClick }: Props) 
 
           {cities.map((city) => {
             const isSelected = city.slug === selectedSlug
-            const color    = scoreToColor(city.totalScore)
+            const color    = hasActiveFactors ? scoreToColor(city.totalScore) : "#9ca3af"
             const r        = (isSelected ? 7 : 5) * dotScale
             const glowR    = (isSelected ? 11 : 8) * dotScale
             const fontSize = 4.5 * dotScale
