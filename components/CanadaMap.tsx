@@ -23,11 +23,11 @@ function lerpRgb(a: [number,number,number], b: [number,number,number], t: number
 }
 function scoreToColor(score: number): string {
   const t = Math.max(0, Math.min(100, score)) / 100
-  const amber:  [number,number,number] = [245, 158, 11]   // #f59e0b
-  const violet: [number,number,number] = [124, 58,  237]  // #7c3aed
-  const blue:   [number,number,number] = [29,  78,  216]  // #1d4ed8
-  if (t <= 0.5) return lerpRgb(amber, violet, t * 2)
-  return lerpRgb(violet, blue, (t - 0.5) * 2)
+  const red:    [number,number,number] = [239, 68,  68]   // #ef4444
+  const yellow: [number,number,number] = [234, 179, 8]    // #eab308
+  const green:  [number,number,number] = [34,  197, 94]   // #22c55e
+  if (t <= 0.5) return lerpRgb(red, yellow, t * 2)
+  return lerpRgb(yellow, green, (t - 0.5) * 2)
 }
 
 interface Props {
