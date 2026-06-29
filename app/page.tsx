@@ -51,7 +51,7 @@ export default function LandingPage() {
               { label: "Affordability", source: "CMHC Rental Market Survey",               color: "#10b981", detail: "Average rent by unit size vs. your monthly budget" },
               { label: "Safety",        source: "StatsCan Crime Severity Index",           color: "#f97316", detail: "Weighted crime rate relative to the national average" },
               { label: "Weather",       source: "Environment Canada 1991–2020",            color: "#0ea5e9", detail: "Annual temperature and precipitation matched to your climate preference" },
-              { label: "Income",        source: "Canadian Income Survey",                  color: "#8b5cf6", detail: "Median after-tax household income by CMA" },
+              { label: "Socioeconomic", source: "Canadian Income Survey",                  color: "#8b5cf6", detail: "Median after-tax household income by CMA" },
               { label: "Transit",       source: "Canadian Public Transit Network DB",      color: "#06b6d4", detail: "Public transit coverage and route density" },
               { label: "Employment",    source: "Labour Force Survey by CMA",              color: "#84cc16", detail: "Annual unemployment rate across major Canadian cities" },
               { label: "Air Quality",   source: "National Air Pollution Surveillance",     color: "#64748b", detail: "Annual average PM2.5 concentration (lower is cleaner)" },

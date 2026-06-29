@@ -18,7 +18,7 @@ const FACTOR_CONFIG: { key: FactorKey; label: string; color: string }[] = [
   { key: "affordability", label: "Affordability", color: "#10b981" },
   { key: "safety",        label: "Safety",        color: "#f97316" },
   { key: "weather",       label: "Weather",       color: "#0ea5e9" },
-  { key: "income",        label: "Income",        color: "#8b5cf6" },
+  { key: "income",        label: "Socioeconomic", color: "#8b5cf6" },
   { key: "transit",       label: "Transit",       color: "#06b6d4" },
   { key: "employment",    label: "Employment",    color: "#84cc16" },
   { key: "airQuality",    label: "Air Quality",   color: "#64748b" },
