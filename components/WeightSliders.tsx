@@ -146,7 +146,7 @@ export default function WeightSliders({
     if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverZone(null)
   }
 
-  function FactorCard({ factorKey, showWeight }: { factorKey: FactorKey; showWeight: boolean }) {
+  function FactorCard({ factorKey, showWeight, rank }: { factorKey: FactorKey; showWeight: boolean; rank?: number }) {
     const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
     return (
       <div
@@ -157,6 +157,9 @@ export default function WeightSliders({
           dragging === factorKey ? "opacity-30" : ""
         }`}
       >
+        {rank !== undefined && (
+          <span className="text-[10px] font-mono text-neutral-300 w-3 text-right flex-shrink-0">{rank}</span>
+        )}
         <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
         <span className="text-sm text-black flex-1">{factor.label}</span>
         {showWeight && (
@@ -238,8 +241,8 @@ export default function WeightSliders({
                     </span>
                   </div>
                 ) : (
-                  factors.map((factorKey) => (
-                    <FactorCard key={factorKey} factorKey={factorKey} showWeight={true} />
+                  factors.map((factorKey, idx) => (
+                    <FactorCard key={factorKey} factorKey={factorKey} showWeight={true} rank={idx + 1} />
                   ))
                 )}
               </div>
