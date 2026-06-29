@@ -23,10 +23,20 @@ interface Props {
   selectedSlug?: string
   onHover?: (slug: string | null) => void
   unitType: UnitType
+  hasActiveFactors: boolean
 }
 
-export default function CityRankingList({ cities, selectedSlug, onHover, unitType }: Props) {
+export default function CityRankingList({ cities, selectedSlug, onHover, unitType, hasActiveFactors }: Props) {
   const router = useRouter()
+
+  if (!hasActiveFactors) {
+    return (
+      <div className="flex flex-col items-center justify-center h-32 gap-1.5">
+        <span className="text-sm text-neutral-400">No factors selected</span>
+        <span className="text-xs text-neutral-300 font-mono">Drag factors into tiers to rank cities</span>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col">

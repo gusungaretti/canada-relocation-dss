@@ -79,7 +79,7 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
           {[
             { label: "Avg. 1BR rent",       value: `$${city.avgRent1BR.toLocaleString()}`,          sub: "per month" },
             { label: "Walk Score",           value: String(city.walkScore),                           sub: "out of 100" },
-            { label: "Crime Severity",       value: String(city.crimeIndex),                          sub: "national avg 100" },
+            { label: "Crime Severity",       value: String(city.crimeIndex),                          sub: "100 = national avg" },
             { label: "Avg. temperature",     value: `${city.avgTempC}°C`,                            sub: `${city.annualPrecipMm} mm/yr` },
             { label: "Median income",        value: `$${city.medianHouseholdIncome.toLocaleString()}`, sub: "after-tax household" },
             { label: "Transit score",        value: String(city.transitScore),                        sub: "out of 100" },

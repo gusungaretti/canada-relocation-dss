@@ -5,6 +5,7 @@ import type { Weights, WeatherType, UnitType } from "@/lib/types"
 
 type TierKey = "mustHave" | "niceToHave" | "bonus"
 type FactorKey = keyof Weights
+type DropZone = TierKey | "unranked"
 
 const TIER_CONFIG: { key: TierKey; label: string; baseWeight: number; description: string }[] = [
   { key: "mustHave",   label: "Must Have",    baseWeight: 60, description: "Heavily influences ranking" },
@@ -38,8 +39,9 @@ const UNIT_TYPES: { value: UnitType; label: string }[] = [
   { value: "three_bed", label: "3 Bed+" },
 ]
 
+// All factors start unranked — user assigns them to tiers
 const DEFAULT_TIERS: Record<TierKey, FactorKey[]> = {
-  mustHave:   ["walkability", "affordability", "safety", "weather", "income", "transit", "employment", "airQuality", "education"],
+  mustHave:   [],
   niceToHave: [],
   bonus:      [],
 }
@@ -47,7 +49,7 @@ const DEFAULT_TIERS: Record<TierKey, FactorKey[]> = {
 function computeWeights(tiers: Record<TierKey, FactorKey[]>): Weights {
   const weights: Weights = { walkability: 0, affordability: 0, safety: 0, weather: 0, income: 0, transit: 0, employment: 0, airQuality: 0, education: 0 }
   const activeTiers = TIER_CONFIG.filter((t) => tiers[t.key].length > 0)
-  if (activeTiers.length === 0) return { walkability: 25, affordability: 25, safety: 25, weather: 25 }
+  if (activeTiers.length === 0) return weights
 
   const totalBase = activeTiers.reduce((sum, t) => sum + t.baseWeight, 0)
   const fractionals: { key: FactorKey; frac: number }[] = []
@@ -62,7 +64,6 @@ function computeWeights(tiers: Record<TierKey, FactorKey[]>): Weights {
     })
   })
 
-  // Distribute rounding remainder to factors with largest fractional parts
   const total = Object.values(weights).reduce((a, b) => a + b, 0)
   fractionals
     .sort((a, b) => b.frac - a.frac)
@@ -91,79 +92,140 @@ export default function WeightSliders({
 }: Props) {
   const [tiers, setTiers] = useState<Record<TierKey, FactorKey[]>>(DEFAULT_TIERS)
   const [dragging, setDragging] = useState<FactorKey | null>(null)
-  const [dragOverTier, setDragOverTier] = useState<TierKey | null>(null)
+  const [dragOverZone, setDragOverZone] = useState<DropZone | null>(null)
 
   useEffect(() => {
     onChange(computeWeights(tiers))
   }, [tiers]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function findTier(factor: FactorKey): TierKey {
+  const assignedKeys = new Set(Object.values(tiers).flat())
+  const unrankedFactors = FACTOR_CONFIG.filter(f => !assignedKeys.has(f.key))
+  const weights = computeWeights(tiers)
+
+  function findTier(factor: FactorKey): TierKey | null {
     for (const tier of TIER_CONFIG) {
       if (tiers[tier.key].includes(factor)) return tier.key
     }
-    return "mustHave"
+    return null
   }
 
-  function handleDrop(targetTier: TierKey) {
+  function dropOnTier(targetTier: TierKey) {
     if (!dragging) return
     const sourceTier = findTier(dragging)
-    if (sourceTier !== targetTier) {
-      setTiers((prev) => ({
-        ...prev,
-        [sourceTier]: prev[sourceTier].filter((f) => f !== dragging),
-        [targetTier]: [...prev[targetTier], dragging],
-      }))
-    }
+    if (sourceTier === targetTier) { setDragging(null); setDragOverZone(null); return }
+    setTiers((prev) => ({
+      ...prev,
+      ...(sourceTier ? { [sourceTier]: prev[sourceTier].filter((f) => f !== dragging) } : {}),
+      [targetTier]: [...prev[targetTier], dragging],
+    }))
     setDragging(null)
-    setDragOverTier(null)
+    setDragOverZone(null)
   }
 
-  const weights = computeWeights(tiers)
+  function dropOnUnranked() {
+    if (!dragging) return
+    const sourceTier = findTier(dragging)
+    if (!sourceTier) { setDragging(null); setDragOverZone(null); return }
+    setTiers((prev) => ({
+      ...prev,
+      [sourceTier]: prev[sourceTier].filter((f) => f !== dragging),
+    }))
+    setDragging(null)
+    setDragOverZone(null)
+  }
+
+  function onDragOver(e: React.DragEvent, zone: DropZone) {
+    e.preventDefault()
+    setDragOverZone(zone)
+  }
+
+  function onDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverZone(null)
+  }
+
+  function FactorCard({ factorKey, showWeight }: { factorKey: FactorKey; showWeight: boolean }) {
+    const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
+    return (
+      <div
+        draggable
+        onDragStart={(e) => { setDragging(factorKey); e.dataTransfer.effectAllowed = "move" }}
+        onDragEnd={() => { setDragging(null); setDragOverZone(null) }}
+        className={`flex items-center gap-2.5 px-3 py-2 bg-white border border-black/[0.07] cursor-grab active:cursor-grabbing select-none transition-opacity hover:border-black/20 ${
+          dragging === factorKey ? "opacity-30" : ""
+        }`}
+      >
+        <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
+        <span className="text-sm text-black flex-1">{factor.label}</span>
+        {showWeight && (
+          <span className="text-[11px] font-mono text-neutral-400 tabular-nums">
+            {Number.isFinite(weights[factorKey]) ? weights[factorKey] : 0}%
+          </span>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Priorities</span>
         <span className="text-xs text-neutral-400">drag to tier</span>
       </div>
 
+      {/* Unranked pool */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">Available factors</span>
+          <span className="text-[10px] text-neutral-300">not included in ranking</span>
+        </div>
+        <div
+          onDragOver={(e) => onDragOver(e, "unranked")}
+          onDragLeave={onDragLeave}
+          onDrop={dropOnUnranked}
+          className={`min-h-[52px] p-2 flex flex-col gap-1 border transition-colors ${
+            dragOverZone === "unranked" ? "border-black/25 bg-neutral-50" : "border-black/[0.07]"
+          }`}
+        >
+          {unrankedFactors.length === 0 ? (
+            <div className="flex items-center justify-center h-8">
+              <span className="text-[10px] text-neutral-300 font-mono select-none">
+                {dragOverZone === "unranked" ? "release to unrank" : "all factors assigned"}
+              </span>
+            </div>
+          ) : (
+            unrankedFactors.map((f) => (
+              <FactorCard key={f.key} factorKey={f.key} showWeight={false} />
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Tier cards */}
       <div className="flex flex-col gap-2">
         {TIER_CONFIG.map(({ key, label, baseWeight, description }) => {
           const factors = tiers[key]
           const activeTiers = TIER_CONFIG.filter((t) => tiers[t.key].length > 0)
           const totalBase = activeTiers.reduce((s, t) => s + t.baseWeight, 0)
           const effectiveWeight = factors.length > 0 ? Math.round((baseWeight / totalBase) * 100) : 0
-          const isOver = dragOverTier === key
+          const isOver = dragOverZone === key
 
           return (
             <div
               key={key}
-              onDragOver={(e) => { e.preventDefault(); setDragOverTier(key) }}
-              onDragLeave={(e) => {
-                // Only clear if leaving the tier container, not a child element
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                  setDragOverTier(null)
-                }
-              }}
-              onDrop={() => handleDrop(key)}
-              className={`border transition-colors ${
-                isOver ? "border-black/25 bg-neutral-50" : "border-black/[0.07]"
-              }`}
+              onDragOver={(e) => onDragOver(e, key)}
+              onDragLeave={onDragLeave}
+              onDrop={() => dropOnTier(key)}
+              className={`border transition-colors ${isOver ? "border-black/25 bg-neutral-50" : "border-black/[0.07]"}`}
             >
-              {/* Tier header */}
               <div className="flex items-center justify-between px-3 py-2 border-b border-black/[0.06]">
                 <div>
                   <span className="text-[11px] font-semibold text-neutral-700 uppercase tracking-wider">{label}</span>
                   <span className="ml-2 text-[10px] text-neutral-400">{description}</span>
                 </div>
-                <span className={`text-[11px] font-mono font-bold tabular-nums ${
-                  effectiveWeight > 0 ? "text-black" : "text-neutral-300"
-                }`}>
+                <span className={`text-[11px] font-mono font-bold tabular-nums ${effectiveWeight > 0 ? "text-black" : "text-neutral-300"}`}>
                   {effectiveWeight > 0 ? `${effectiveWeight}%` : "—"}
                 </span>
               </div>
-
-              {/* Drop zone */}
               <div className="min-h-[44px] p-2 flex flex-col gap-1">
                 {factors.length === 0 ? (
                   <div className="flex items-center justify-center h-8">
@@ -172,32 +234,9 @@ export default function WeightSliders({
                     </span>
                   </div>
                 ) : (
-                  factors.map((factorKey) => {
-                    const factor = FACTOR_CONFIG.find((f) => f.key === factorKey)!
-                    return (
-                      <div
-                        key={factorKey}
-                        draggable
-                        onDragStart={(e) => {
-                          setDragging(factorKey)
-                          e.dataTransfer.effectAllowed = "move"
-                        }}
-                        onDragEnd={() => { setDragging(null); setDragOverTier(null) }}
-                        className={`flex items-center gap-2.5 px-3 py-2 bg-white border border-black/[0.07] cursor-grab active:cursor-grabbing select-none transition-opacity hover:border-black/20 ${
-                          dragging === factorKey ? "opacity-30" : ""
-                        }`}
-                      >
-                        <div
-                          className="w-2 h-2 flex-shrink-0"
-                          style={{ backgroundColor: factor.color }}
-                        />
-                        <span className="text-sm text-black flex-1">{factor.label}</span>
-                        <span className="text-[11px] font-mono text-neutral-400 tabular-nums">
-                          {Number.isFinite(weights[factorKey]) ? weights[factorKey] : 0}%
-                        </span>
-                      </div>
-                    )
-                  })
+                  factors.map((factorKey) => (
+                    <FactorCard key={factorKey} factorKey={factorKey} showWeight={true} />
+                  ))
                 )}
               </div>
             </div>

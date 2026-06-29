@@ -44,6 +44,11 @@ export default function ExplorePage() {
     [weights, weatherType, unitType, budget]
   )
 
+  const hasActiveFactors = useMemo(
+    () => Object.values(weights).some(w => w > 0),
+    [weights]
+  )
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white">
       {/* Header */}
@@ -109,6 +114,7 @@ export default function ExplorePage() {
               selectedSlug={hoveredSlug ?? undefined}
               onHover={setHoveredSlug}
               unitType={unitType}
+              hasActiveFactors={hasActiveFactors}
             />
           </div>
         </main>
