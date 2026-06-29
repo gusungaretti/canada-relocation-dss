@@ -6,6 +6,7 @@ import Link from "next/link"
 import { SlidersHorizontal } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
+import CityComparisonPanel from "@/components/CityComparisonPanel"
 import { scoreCities } from "@/lib/scoring"
 import type { Weights, WeatherType, UnitType } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
@@ -38,6 +39,14 @@ export default function ExplorePage() {
   const [budget, setBudget] = useState(2000)
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
   const [showSliders, setShowSliders] = useState(false)
+  const [compareSet, setCompareSet] = useState<string[]>([])
+  const [showComparison, setShowComparison] = useState(false)
+
+  function toggleCompare(slug: string) {
+    setCompareSet(prev =>
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug].slice(0, 4)
+    )
+  }
 
   const rankedCities = useMemo(
     () => scoreCities(citiesRaw as Parameters<typeof scoreCities>[0], weights, weatherType, unitType, budget),
@@ -51,6 +60,14 @@ export default function ExplorePage() {
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white">
+      {showComparison && (
+        <CityComparisonPanel
+          cities={rankedCities}
+          compareSet={compareSet}
+          weights={weights}
+          onClose={() => setShowComparison(false)}
+        />
+      )}
       {/* Header */}
       <header className="flex-shrink-0 h-14 border-b border-black/[0.06] flex items-center px-6 gap-4 bg-white">
         <Link href="/" className="text-sm font-semibold text-black mr-4 hover:opacity-70 transition-opacity">
@@ -108,7 +125,17 @@ export default function ExplorePage() {
           <div className="flex-shrink-0 h-64 border-t border-black/[0.06] bg-white overflow-y-auto">
             <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] sticky top-0 bg-white z-10">
               <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Rankings</span>
-              <span className="text-xs text-neutral-400">Click any city for details</span>
+              <div className="flex items-center gap-3">
+                {compareSet.length >= 2 && (
+                  <button
+                    onClick={() => setShowComparison(true)}
+                    className="text-xs font-medium px-3 py-1 bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+                  >
+                    Compare ({compareSet.length})
+                  </button>
+                )}
+                <span className="text-xs text-neutral-400">+ to compare</span>
+              </div>
             </div>
             <CityRankingList
               cities={rankedCities}
@@ -116,6 +143,8 @@ export default function ExplorePage() {
               onHover={setHoveredSlug}
               unitType={unitType}
               hasActiveFactors={hasActiveFactors}
+              compareSet={compareSet}
+              onToggleCompare={toggleCompare}
             />
           </div>
         </main>

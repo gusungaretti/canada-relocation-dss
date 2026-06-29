@@ -46,17 +46,20 @@ const DEFAULT_TIERS: Record<TierKey, FactorKey[]> = {
   bonus:      [],
 }
 
+// Ratio system: each Must Have factor always outweighs each Nice to Have factor,
+// regardless of how many factors are in each tier. 3:2:1 per-factor ratio.
+const TIER_MULTIPLIERS: Record<TierKey, number> = { mustHave: 3, niceToHave: 2, bonus: 1 }
+
 function computeWeights(tiers: Record<TierKey, FactorKey[]>): Weights {
   const weights: Weights = { walkability: 0, affordability: 0, safety: 0, weather: 0, income: 0, transit: 0, employment: 0, airQuality: 0, education: 0 }
-  const activeTiers = TIER_CONFIG.filter((t) => tiers[t.key].length > 0)
-  if (activeTiers.length === 0) return weights
+  const divisor = TIER_CONFIG.reduce((sum, t) => sum + tiers[t.key].length * TIER_MULTIPLIERS[t.key], 0)
+  if (divisor === 0) return weights
 
-  const totalBase = activeTiers.reduce((sum, t) => sum + t.baseWeight, 0)
+  const x = 100 / divisor
   const fractionals: { key: FactorKey; frac: number }[] = []
 
-  activeTiers.forEach((tier) => {
-    const tierWeight = (tier.baseWeight / totalBase) * 100
-    const perFactor = tierWeight / tiers[tier.key].length
+  TIER_CONFIG.forEach((tier) => {
+    const perFactor = x * TIER_MULTIPLIERS[tier.key]
     tiers[tier.key].forEach((f) => {
       const floored = Math.floor(perFactor)
       weights[f] = floored
@@ -202,11 +205,12 @@ export default function WeightSliders({
 
       {/* Tier cards */}
       <div className="flex flex-col gap-2">
-        {TIER_CONFIG.map(({ key, label, baseWeight, description }) => {
+        {TIER_CONFIG.map(({ key, label, description }) => {
           const factors = tiers[key]
-          const activeTiers = TIER_CONFIG.filter((t) => tiers[t.key].length > 0)
-          const totalBase = activeTiers.reduce((s, t) => s + t.baseWeight, 0)
-          const effectiveWeight = factors.length > 0 ? Math.round((baseWeight / totalBase) * 100) : 0
+          const m = tiers.mustHave.length, n = tiers.niceToHave.length, b = tiers.bonus.length
+          const divisor = 3*m + 2*n + b
+          const perFactor = divisor > 0 ? (100 / divisor) * TIER_MULTIPLIERS[key] : 0
+          const effectiveWeight = Math.round(factors.length * perFactor)
           const isOver = dragOverZone === key
 
           return (

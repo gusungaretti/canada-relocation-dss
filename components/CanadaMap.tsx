@@ -17,11 +17,17 @@ const CANADA_CENTER: [number, number] = [-96, 62]
 type Position = { coordinates: [number, number]; zoom: number }
 const DEFAULT_POSITION: Position = { coordinates: CANADA_CENTER, zoom: 1 }
 
+function lerp(a: number, b: number, t: number) { return Math.round(a + (b - a) * t) }
+function lerpRgb(a: [number,number,number], b: [number,number,number], t: number): string {
+  return `rgb(${lerp(a[0],b[0],t)},${lerp(a[1],b[1],t)},${lerp(a[2],b[2],t)})`
+}
 function scoreToColor(score: number): string {
-  if (score >= 70) return "#16a34a"
-  if (score >= 55) return "#ca8a04"
-  if (score >= 40) return "#d97706"
-  return "#dc2626"
+  const t = Math.max(0, Math.min(100, score)) / 100
+  const amber:  [number,number,number] = [245, 158, 11]   // #f59e0b
+  const violet: [number,number,number] = [124, 58,  237]  // #7c3aed
+  const blue:   [number,number,number] = [29,  78,  216]  // #1d4ed8
+  if (t <= 0.5) return lerpRgb(amber, violet, t * 2)
+  return lerpRgb(violet, blue, (t - 0.5) * 2)
 }
 
 interface Props {
