@@ -129,7 +129,7 @@ export default function ExplorePage() {
                 {compareSet.length >= 2 && (
                   <button
                     onClick={() => setShowComparison(true)}
-                    className="text-xs font-medium px-3 py-1 bg-indigo-500 text-white hover:bg-indigo-600 transition-colors"
+                    className="text-xs font-medium px-3 py-1 bg-black text-white hover:bg-neutral-700 transition-colors"
                   >
                     Compare ({compareSet.length})
                   </button>

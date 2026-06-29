@@ -151,7 +151,7 @@ export default function WeightSliders({
     return (
       <div
         draggable
-        onDragStart={(e) => { setDragging(factorKey); e.dataTransfer.effectAllowed = "move" }}
+        onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", factorKey); setTimeout(() => setDragging(factorKey), 0) }}
         onDragEnd={() => { setDragging(null); setDragOverZone(null) }}
         className={`flex items-center gap-2.5 px-3 py-2 bg-white border border-black/[0.07] cursor-grab active:cursor-grabbing select-none transition-opacity hover:border-black/20 ${
           dragging === factorKey ? "opacity-30" : ""

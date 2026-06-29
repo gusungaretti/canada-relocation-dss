@@ -51,7 +51,7 @@ export default function CityRankingList({ cities, selectedSlug, onHover, unitTyp
           <div
             key={city.slug}
             className={`flex items-center border-b border-black/[0.05] last:border-0 transition-colors ${
-              isComparing ? "bg-indigo-50/60" : isSelected ? "bg-neutral-50" : "hover:bg-neutral-50/70"
+              isComparing ? "bg-neutral-100/70" : isSelected ? "bg-neutral-50" : "hover:bg-neutral-50/70"
             }`}
             onMouseEnter={() => onHover?.(city.slug)}
             onMouseLeave={() => onHover?.(null)}
@@ -89,13 +89,13 @@ export default function CityRankingList({ cities, selectedSlug, onHover, unitTyp
             <button
               onClick={() => onToggleCompare(city.slug)}
               title={isComparing ? "Remove from comparison" : "Add to comparison"}
-              className={`flex-shrink-0 w-6 h-6 mx-3 flex items-center justify-center border transition-colors text-xs font-bold ${
+              className={`flex-shrink-0 w-6 h-6 mx-3 flex items-center justify-center border transition-colors text-xs font-mono ${
                 isComparing
-                  ? "border-indigo-400 bg-indigo-500 text-white"
+                  ? "border-black bg-black text-white"
                   : "border-black/[0.12] text-neutral-300 hover:border-black/30 hover:text-black"
               }`}
             >
-              {isComparing ? "✓" : "+"}
+              {isComparing ? "−" : "+"}
             </button>
           </div>
         )
