@@ -18,7 +18,8 @@
     "transitScore": 87,
     "unemploymentRate": 5.4,
     "pm25": 6.8,
-    "schoolRating": 6.9
+    "schoolRating": 6.9,
+    "subreddit": "vancouver"
   },
   {
     "id": "915",
@@ -39,7 +40,8 @@
     "transitScore": 65,
     "unemploymentRate": 4.6,
     "pm25": 4.1,
-    "schoolRating": 7.6
+    "schoolRating": 7.6,
+    "subreddit": "VictoriaBC"
   },
   {
     "id": "935",
@@ -60,7 +62,8 @@
     "transitScore": 32,
     "unemploymentRate": 5.2,
     "pm25": 7.2,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "kelowna"
   },
   {
     "id": "930",
@@ -81,7 +84,8 @@
     "transitScore": 28,
     "unemploymentRate": 5.6,
     "pm25": 7.8,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "abbotsford"
   },
   {
     "id": "825",
@@ -102,7 +106,8 @@
     "transitScore": 72,
     "unemploymentRate": 6.9,
     "pm25": 5.9,
-    "schoolRating": 7.3
+    "schoolRating": 7.3,
+    "subreddit": "Calgary"
   },
   {
     "id": "840",
@@ -123,7 +128,8 @@
     "transitScore": 68,
     "unemploymentRate": 7.3,
     "pm25": 7.4,
-    "schoolRating": 6.9
+    "schoolRating": 6.9,
+    "subreddit": "Edmonton"
   },
   {
     "id": "745",
@@ -144,7 +150,8 @@
     "transitScore": 45,
     "unemploymentRate": 5.9,
     "pm25": 5.6,
-    "schoolRating": 6.1
+    "schoolRating": 6.1,
+    "subreddit": "saskatoon"
   },
   {
     "id": "740",
@@ -165,7 +172,8 @@
     "transitScore": 38,
     "unemploymentRate": 5.6,
     "pm25": 5.4,
-    "schoolRating": 5.9
+    "schoolRating": 5.9,
+    "subreddit": "regina"
   },
   {
     "id": "602",
@@ -186,7 +194,8 @@
     "transitScore": 62,
     "unemploymentRate": 5.4,
     "pm25": 6.2,
-    "schoolRating": 5.6
+    "schoolRating": 5.6,
+    "subreddit": "Winnipeg"
   },
   {
     "id": "535",
@@ -207,12 +216,13 @@
     "transitScore": 95,
     "unemploymentRate": 6.6,
     "pm25": 8.8,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "toronto"
   },
   {
     "id": "505",
     "slug": "ottawa-gatineau",
-    "name": "Ottawa–Gatineau",
+    "name": "Ottawa\u2013Gatineau",
     "province": "ON/QC",
     "lat": 45.4215,
     "lng": -75.6919,
@@ -228,7 +238,8 @@
     "transitScore": 78,
     "unemploymentRate": 5.1,
     "pm25": 7.4,
-    "schoolRating": 7.1
+    "schoolRating": 7.1,
+    "subreddit": "ottawa"
   },
   {
     "id": "537",
@@ -249,12 +260,13 @@
     "transitScore": 55,
     "unemploymentRate": 6.1,
     "pm25": 9.3,
-    "schoolRating": 5.9
+    "schoolRating": 5.9,
+    "subreddit": "hamilton"
   },
   {
     "id": "541",
     "slug": "kitchener",
-    "name": "Kitchener–Cambridge–Waterloo",
+    "name": "Kitchener\u2013Cambridge\u2013Waterloo",
     "province": "ON",
     "lat": 43.4516,
     "lng": -80.4925,
@@ -270,7 +282,8 @@
     "transitScore": 52,
     "unemploymentRate": 5.6,
     "pm25": 7.9,
-    "schoolRating": 6.9
+    "schoolRating": 6.9,
+    "subreddit": "kitchener"
   },
   {
     "id": "555",
@@ -291,7 +304,8 @@
     "transitScore": 50,
     "unemploymentRate": 6.3,
     "pm25": 7.7,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "londonontario"
   },
   {
     "id": "529",
@@ -312,7 +326,8 @@
     "transitScore": 44,
     "unemploymentRate": 6.2,
     "pm25": 8.2,
-    "schoolRating": 5.6
+    "schoolRating": 5.6,
+    "subreddit": "Oshawa"
   },
   {
     "id": "562",
@@ -333,7 +348,8 @@
     "transitScore": 42,
     "unemploymentRate": 7.6,
     "pm25": 10.8,
-    "schoolRating": 5.3
+    "schoolRating": 5.3,
+    "subreddit": "windsorontario"
   },
   {
     "id": "568",
@@ -354,7 +370,8 @@
     "transitScore": 32,
     "unemploymentRate": 5.9,
     "pm25": 6.7,
-    "schoolRating": 6.1
+    "schoolRating": 6.1,
+    "subreddit": "barrie"
   },
   {
     "id": "559",
@@ -375,7 +392,8 @@
     "transitScore": 40,
     "unemploymentRate": 5.3,
     "pm25": 7.0,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "KingstonOntario"
   },
   {
     "id": "570",
@@ -396,12 +414,13 @@
     "transitScore": 33,
     "unemploymentRate": 6.6,
     "pm25": 6.6,
-    "schoolRating": 5.9
+    "schoolRating": 5.9,
+    "subreddit": "Peterborough"
   },
   {
     "id": "543",
     "slug": "st-catharines",
-    "name": "St. Catharines–Niagara",
+    "name": "St. Catharines\u2013Niagara",
     "province": "ON",
     "lat": 43.1594,
     "lng": -79.2469,
@@ -417,7 +436,8 @@
     "transitScore": 37,
     "unemploymentRate": 7.1,
     "pm25": 8.8,
-    "schoolRating": 5.6
+    "schoolRating": 5.6,
+    "subreddit": "niagara"
   },
   {
     "id": "580",
@@ -438,7 +458,8 @@
     "transitScore": 30,
     "unemploymentRate": 6.9,
     "pm25": 5.7,
-    "schoolRating": 5.3
+    "schoolRating": 5.3,
+    "subreddit": "Sudbury"
   },
   {
     "id": "595",
@@ -459,12 +480,13 @@
     "transitScore": 28,
     "unemploymentRate": 6.4,
     "pm25": 6.0,
-    "schoolRating": 5.1
+    "schoolRating": 5.1,
+    "subreddit": "ThunderBay"
   },
   {
     "id": "462",
     "slug": "montreal",
-    "name": "Montréal",
+    "name": "Montr\u00e9al",
     "province": "QC",
     "lat": 45.5017,
     "lng": -73.5673,
@@ -480,12 +502,13 @@
     "transitScore": 92,
     "unemploymentRate": 6.9,
     "pm25": 8.4,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "montreal"
   },
   {
     "id": "421",
     "slug": "quebec-city",
-    "name": "Québec City",
+    "name": "Qu\u00e9bec City",
     "province": "QC",
     "lat": 46.8139,
     "lng": -71.208,
@@ -501,7 +524,8 @@
     "transitScore": 65,
     "unemploymentRate": 4.6,
     "pm25": 6.7,
-    "schoolRating": 7.1
+    "schoolRating": 7.1,
+    "subreddit": "quebeccity"
   },
   {
     "id": "433",
@@ -522,12 +546,13 @@
     "transitScore": 40,
     "unemploymentRate": 5.6,
     "pm25": 6.2,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "Sherbrooke"
   },
   {
     "id": "442",
     "slug": "trois-rivieres",
-    "name": "Trois-Rivières",
+    "name": "Trois-Rivi\u00e8res",
     "province": "QC",
     "lat": 46.344,
     "lng": -72.5432,
@@ -543,7 +568,8 @@
     "transitScore": 36,
     "unemploymentRate": 6.1,
     "pm25": 6.8,
-    "schoolRating": 6.1
+    "schoolRating": 6.1,
+    "subreddit": "troisrivieres"
   },
   {
     "id": "408",
@@ -564,7 +590,8 @@
     "transitScore": 28,
     "unemploymentRate": 6.6,
     "pm25": 5.6,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "Saguenay"
   },
   {
     "id": "205",
@@ -585,7 +612,8 @@
     "transitScore": 58,
     "unemploymentRate": 5.6,
     "pm25": 5.1,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "halifax"
   },
   {
     "id": "305",
@@ -606,7 +634,8 @@
     "transitScore": 38,
     "unemploymentRate": 6.3,
     "pm25": 4.9,
-    "schoolRating": 6.1
+    "schoolRating": 6.1,
+    "subreddit": "moncton"
   },
   {
     "id": "310",
@@ -627,7 +656,8 @@
     "transitScore": 33,
     "unemploymentRate": 7.6,
     "pm25": 5.7,
-    "schoolRating": 5.6
+    "schoolRating": 5.6,
+    "subreddit": "SaintJohnNB"
   },
   {
     "id": "001",
@@ -648,7 +678,8 @@
     "transitScore": 40,
     "unemploymentRate": 6.1,
     "pm25": 4.3,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "StJohnsNL"
   },
   {
     "id": "328",
@@ -669,7 +700,8 @@
     "transitScore": 32,
     "unemploymentRate": 5.9,
     "pm25": 4.6,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "fredericton"
   },
   {
     "id": "550",
@@ -690,7 +722,8 @@
     "transitScore": 46,
     "unemploymentRate": 5.3,
     "pm25": 7.9,
-    "schoolRating": 7.1
+    "schoolRating": 7.1,
+    "subreddit": "Guelph"
   },
   {
     "id": "502",
@@ -711,7 +744,8 @@
     "transitScore": 35,
     "unemploymentRate": 6.6,
     "pm25": 8.4,
-    "schoolRating": 5.9
+    "schoolRating": 5.9,
+    "subreddit": "brantford"
   },
   {
     "id": "522",
@@ -732,7 +766,8 @@
     "transitScore": 28,
     "unemploymentRate": 7.1,
     "pm25": 6.7,
-    "schoolRating": 5.9
+    "schoolRating": 5.9,
+    "subreddit": "BellevilleOntario"
   },
   {
     "id": "810",
@@ -753,7 +788,8 @@
     "transitScore": 30,
     "unemploymentRate": 6.6,
     "pm25": 5.6,
-    "schoolRating": 6.6
+    "schoolRating": 6.6,
+    "subreddit": "Lethbridge"
   },
   {
     "id": "925",
@@ -774,7 +810,8 @@
     "transitScore": 36,
     "unemploymentRate": 5.9,
     "pm25": 7.8,
-    "schoolRating": 6.1
+    "schoolRating": 6.1,
+    "subreddit": "Kamloops"
   },
   {
     "id": "938",
@@ -795,6 +832,7 @@
     "transitScore": 42,
     "unemploymentRate": 6.1,
     "pm25": 5.9,
-    "schoolRating": 6.3
+    "schoolRating": 6.3,
+    "subreddit": "nanaimo"
   }
 ]

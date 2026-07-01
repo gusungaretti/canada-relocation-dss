@@ -1,0 +1,512 @@
+{
+  "toronto": [
+    {
+      "word": "island",
+      "count": 2
+    },
+    {
+      "word": "bus",
+      "count": 2
+    },
+    {
+      "word": "hope",
+      "count": 2
+    },
+    {
+      "word": "fans",
+      "count": 2
+    },
+    {
+      "word": "game",
+      "count": 2
+    },
+    {
+      "word": "agricultural",
+      "count": 2
+    },
+    {
+      "word": "kayaked",
+      "count": 1
+    },
+    {
+      "word": "back",
+      "count": 1
+    },
+    {
+      "word": "weekend",
+      "count": 1
+    },
+    {
+      "word": "peaceful",
+      "count": 1
+    },
+    {
+      "word": "highway",
+      "count": 1
+    },
+    {
+      "word": "route",
+      "count": 1
+    },
+    {
+      "word": "take",
+      "count": 1
+    },
+    {
+      "word": "beginner",
+      "count": 1
+    },
+    {
+      "word": "battle",
+      "count": 1
+    },
+    {
+      "word": "lane",
+      "count": 1
+    },
+    {
+      "word": "rapid",
+      "count": 1
+    },
+    {
+      "word": "transit",
+      "count": 1
+    },
+    {
+      "word": "main",
+      "count": 1
+    },
+    {
+      "word": "street",
+      "count": 1
+    },
+    {
+      "word": "sparking",
+      "count": 1
+    },
+    {
+      "word": "backlash",
+      "count": 1
+    },
+    {
+      "word": "brand",
+      "count": 1
+    },
+    {
+      "word": "defining",
+      "count": 1
+    },
+    {
+      "word": "features",
+      "count": 1
+    }
+  ],
+  "vancouver": [
+    {
+      "word": "park",
+      "count": 4
+    },
+    {
+      "word": "dog",
+      "count": 3
+    },
+    {
+      "word": "evos",
+      "count": 2
+    },
+    {
+      "word": "granville",
+      "count": 2
+    },
+    {
+      "word": "buying",
+      "count": 2
+    },
+    {
+      "word": "parked",
+      "count": 2
+    },
+    {
+      "word": "areas",
+      "count": 2
+    },
+    {
+      "word": "loving",
+      "count": 1
+    },
+    {
+      "word": "airport",
+      "count": 1
+    },
+    {
+      "word": "burrard",
+      "count": 1
+    },
+    {
+      "word": "bridge",
+      "count": 1
+    },
+    {
+      "word": "taken",
+      "count": 1
+    },
+    {
+      "word": "island",
+      "count": 1
+    },
+    {
+      "word": "seagull",
+      "count": 1
+    },
+    {
+      "word": "hotdog",
+      "count": 1
+    },
+    {
+      "word": "hear",
+      "count": 1
+    },
+    {
+      "word": "loud",
+      "count": 1
+    },
+    {
+      "word": "bang",
+      "count": 1
+    },
+    {
+      "word": "almost",
+      "count": 1
+    },
+    {
+      "word": "gun",
+      "count": 1
+    },
+    {
+      "word": "west",
+      "count": 1
+    },
+    {
+      "word": "end",
+      "count": 1
+    },
+    {
+      "word": "campervan",
+      "count": 1
+    },
+    {
+      "word": "way",
+      "count": 1
+    },
+    {
+      "word": "weed",
+      "count": 1
+    }
+  ],
+  "calgary": [
+    {
+      "word": "driver",
+      "count": 2
+    },
+    {
+      "word": "dog",
+      "count": 2
+    },
+    {
+      "word": "accounts",
+      "count": 2
+    },
+    {
+      "word": "house",
+      "count": 2
+    },
+    {
+      "word": "flaunt",
+      "count": 1
+    },
+    {
+      "word": "drive",
+      "count": 1
+    },
+    {
+      "word": "neighborhood",
+      "count": 1
+    },
+    {
+      "word": "moving",
+      "count": 1
+    },
+    {
+      "word": "communities",
+      "count": 1
+    },
+    {
+      "word": "watching",
+      "count": 1
+    },
+    {
+      "word": "closely",
+      "count": 1
+    },
+    {
+      "word": "casually",
+      "count": 1
+    },
+    {
+      "word": "blocks",
+      "count": 1
+    },
+    {
+      "word": "traffic",
+      "count": 1
+    },
+    {
+      "word": "lane",
+      "count": 1
+    },
+    {
+      "word": "construction",
+      "count": 1
+    },
+    {
+      "word": "zone",
+      "count": 1
+    },
+    {
+      "word": "right",
+      "count": 1
+    },
+    {
+      "word": "front",
+      "count": 1
+    },
+    {
+      "word": "cop",
+      "count": 1
+    },
+    {
+      "word": "found",
+      "count": 1
+    },
+    {
+      "word": "lost",
+      "count": 1
+    },
+    {
+      "word": "taradale",
+      "count": 1
+    },
+    {
+      "word": "big",
+      "count": 1
+    },
+    {
+      "word": "sign",
+      "count": 1
+    }
+  ],
+  "montreal": [
+    {
+      "word": "near",
+      "count": 2
+    },
+    {
+      "word": "first",
+      "count": 2
+    },
+    {
+      "word": "expert",
+      "count": 1
+    },
+    {
+      "word": "veut",
+      "count": 1
+    },
+    {
+      "word": "quebec",
+      "count": 1
+    },
+    {
+      "word": "enseigne",
+      "count": 1
+    },
+    {
+      "word": "eleves",
+      "count": 1
+    },
+    {
+      "word": "comprendre",
+      "count": 1
+    },
+    {
+      "word": "utiliser",
+      "count": 1
+    },
+    {
+      "word": "informations",
+      "count": 1
+    },
+    {
+      "word": "numeriques",
+      "count": 1
+    },
+    {
+      "word": "contrer",
+      "count": 1
+    },
+    {
+      "word": "desinformation",
+      "count": 1
+    },
+    {
+      "word": "psychiatrist",
+      "count": 1
+    },
+    {
+      "word": "psychotherapist",
+      "count": 1
+    },
+    {
+      "word": "accepts",
+      "count": 1
+    },
+    {
+      "word": "patients",
+      "count": 1
+    },
+    {
+      "word": "views",
+      "count": 1
+    },
+    {
+      "word": "villa",
+      "count": 1
+    },
+    {
+      "word": "sainte",
+      "count": 1
+    },
+    {
+      "word": "marcelline",
+      "count": 1
+    },
+    {
+      "word": "ymca",
+      "count": 1
+    },
+    {
+      "word": "language",
+      "count": 1
+    },
+    {
+      "word": "classes",
+      "count": 1
+    },
+    {
+      "word": "beaux",
+      "count": 1
+    }
+  ],
+  "halifax": [
+    {
+      "word": "power",
+      "count": 2
+    },
+    {
+      "word": "brake",
+      "count": 2
+    },
+    {
+      "word": "lights",
+      "count": 2
+    },
+    {
+      "word": "school",
+      "count": 2
+    },
+    {
+      "word": "work",
+      "count": 2
+    },
+    {
+      "word": "cemetery",
+      "count": 1
+    },
+    {
+      "word": "stroll",
+      "count": 1
+    },
+    {
+      "word": "weather",
+      "count": 1
+    },
+    {
+      "word": "everyone",
+      "count": 1
+    },
+    {
+      "word": "else",
+      "count": 1
+    },
+    {
+      "word": "stuck",
+      "count": 1
+    },
+    {
+      "word": "working",
+      "count": 1
+    },
+    {
+      "word": "extra",
+      "count": 1
+    },
+    {
+      "word": "pay",
+      "count": 1
+    },
+    {
+      "word": "compensation",
+      "count": 1
+    },
+    {
+      "word": "login",
+      "count": 1
+    },
+    {
+      "word": "link",
+      "count": 1
+    },
+    {
+      "word": "check",
+      "count": 1
+    },
+    {
+      "word": "many",
+      "count": 1
+    },
+    {
+      "word": "cars",
+      "count": 1
+    },
+    {
+      "word": "zero",
+      "count": 1
+    },
+    {
+      "word": "road",
+      "count": 1
+    },
+    {
+      "word": "survey",
+      "count": 1
+    },
+    {
+      "word": "gift",
+      "count": 1
+    },
+    {
+      "word": "card",
+      "count": 1
+    }
+  ]
+}

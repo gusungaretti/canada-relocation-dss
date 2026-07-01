@@ -2,8 +2,12 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { scoreCities } from "@/lib/scoring"
+import SubredditWordCloud from "@/components/SubredditWordCloud"
 import citiesRaw from "@/data/cities.json"
-import type { City } from "@/lib/types"
+import subredditWordsRaw from "@/data/subreddit_words.json"
+import type { City, SubredditWord } from "@/lib/types"
+
+const subredditWords = subredditWordsRaw as Record<string, SubredditWord[]>
 
 const EQUAL_WEIGHTS = {
   walkability: 11, affordability: 11, safety: 11, weather: 11,
@@ -113,6 +117,27 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
           <ScoreRow label="Air Quality"   score={city.factorScores.airQuality}    color="#64748b" raw={`${city.pm25} μg/m³`} />
           <ScoreRow label="Education"     score={city.factorScores.education}     color="#f59e0b" raw={`${city.schoolRating}/10`} />
         </div>
+
+        {/* Community pulse — subreddit word cloud */}
+        {city.subreddit && (
+          <div className="mt-12">
+            <div className="flex items-baseline justify-between mb-4">
+              <p className="text-xs font-mono text-neutral-400 uppercase tracking-wide">Community pulse</p>
+              <a
+                href={`https://reddit.com/r/${city.subreddit}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-neutral-400 hover:text-black transition-colors"
+              >
+                r/{city.subreddit} →
+              </a>
+            </div>
+            <SubredditWordCloud
+              words={subredditWords[city.slug] ?? []}
+              subreddit={city.subreddit}
+            />
+          </div>
+        )}
 
         {/* Sources */}
         <p className="mt-6 text-xs text-neutral-400 leading-relaxed">

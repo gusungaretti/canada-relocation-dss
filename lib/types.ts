@@ -23,6 +23,12 @@ export interface City {
   unemploymentRate: number       // % (Labour Force Survey by CMA)
   pm25: number                   // μg/m³ annual avg (NAPS) — lower is better
   schoolRating: number           // 0–10 composite (Fraser Institute)
+  subreddit?: string             // Reddit community name (e.g. "vancouver")
+}
+
+export interface SubredditWord {
+  word: string
+  count: number
 }
 
 export interface Weights {
