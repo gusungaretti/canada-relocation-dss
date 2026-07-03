@@ -9,13 +9,21 @@ export default function LandingPage() {
       <nav className="absolute top-0 left-0 right-0 z-50">
         <div className="max-w-6xl mx-auto px-8 h-16 flex items-center justify-between">
           <span className="text-sm font-semibold text-white drop-shadow-sm">Maple Moving</span>
-          <Link
-            href="/explore"
-            className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-colors"
-          >
-            Explore cities
-            <ArrowRight size={13} />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/methodology"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              Methodology
+            </Link>
+            <Link
+              href="/explore"
+              className="flex items-center gap-1.5 text-sm font-medium px-4 py-2 bg-white/15 backdrop-blur-sm border border-white/20 text-white hover:bg-white/25 transition-colors"
+            >
+              Explore cities
+              <ArrowRight size={13} />
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -98,6 +106,13 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+            <Link
+              href="/methodology"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-black mt-14 hover:opacity-70 transition-opacity"
+            >
+              Read the full scoring methodology
+              <ArrowRight size={14} />
+            </Link>
           </div>
         </section>
 

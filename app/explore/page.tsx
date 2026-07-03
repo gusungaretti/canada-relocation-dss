@@ -76,6 +76,12 @@ export default function ExplorePage() {
         <div className="h-4 w-px bg-black/10" />
         <span className="text-sm text-neutral-400">Explore Canadian Cities</span>
         <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/methodology"
+            className="text-xs text-neutral-400 hover:text-black transition-colors hidden sm:block"
+          >
+            How scoring works
+          </Link>
           <span className="text-xs text-neutral-400 hidden sm:block font-mono">
             {rankedCities.length} CMAs · weights sum to 100%
           </span>
