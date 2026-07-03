@@ -23,9 +23,10 @@ function getRent(city: City, unitType: UnitType): number {
   }
 }
 
-// Budget-relative affordability: 80 at budget, >80 under budget, <80 over budget
+// Budget-relative affordability: 80 at budget, scales linearly with rent/budget ratio
+// so it only approaches 100 as rent approaches 0 — no artificial ceiling for cheap cities.
 function affordabilityScore(rent: number, budget: number): number {
-  return Math.max(0, Math.min(100, Math.round((budget / rent) * 80)))
+  return Math.max(0, Math.min(100, Math.round(100 - 20 * (rent / budget))))
 }
 
 function weatherScore(city: City, allCities: City[], type: WeatherType): number {
