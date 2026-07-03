@@ -90,12 +90,14 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
               const spread = best - worst
               const isWeighted = weights[key] > 0
 
+              const dotColor = isWeighted ? color : "#d1d5db"
+
               return (
-                <tr key={key} className={`border-b border-black/[0.04] hover:bg-neutral-50/60 transition-colors ${isWeighted ? "" : "opacity-50"}`}>
+                <tr key={key} className="border-b border-black/[0.04] hover:bg-neutral-50/60 transition-colors">
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 flex-shrink-0" style={{ backgroundColor: color }} />
-                      <span className="text-sm text-neutral-600">{label}</span>
+                      <div className="w-1.5 h-1.5 flex-shrink-0" style={{ backgroundColor: dotColor }} />
+                      <span className={`text-sm ${isWeighted ? "text-neutral-600" : "text-neutral-300"}`}>{label}</span>
                     </div>
                     <div className="text-[10px] text-neutral-300 font-mono mt-0.5 pl-3.5">
                       {isWeighted ? `${weights[key]}% weight` : "not ranked"}
@@ -104,24 +106,28 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                   {selected.map(city => {
                     const score = city.factorScores[key]
                     const isBest = score === best
+                    const highlight = isWeighted && isBest
                     return (
                       <td key={city.slug} className="px-6 py-3 text-center">
-                        <div className={`text-lg font-mono font-bold ${isBest ? "" : "text-neutral-400"}`}
-                          style={isBest ? { color } : undefined}>
+                        <div className={`text-lg font-mono font-bold ${highlight ? "" : "text-neutral-300"}`}
+                          style={highlight ? { color } : undefined}>
                           {score}
                         </div>
                         <div className="mt-1.5 h-1 bg-neutral-100 mx-auto w-20 overflow-hidden">
                           <div
                             className="h-full transition-all"
-                            style={{ width: `${score}%`, backgroundColor: isBest ? color : "#d1d5db" }}
+                            style={{ width: `${score}%`, backgroundColor: highlight ? color : "#e5e5e5" }}
                           />
                         </div>
                       </td>
                     )
                   })}
                   <td className="px-6 py-3 text-center border-l border-black/[0.04]">
-                    <div className={`text-sm font-mono font-semibold ${spread > 0 ? "text-black" : "text-neutral-300"}`}>
-                      {spread > 0 ? `Δ ${spread}` : "—"}
+                    <div className={`inline-flex items-baseline gap-1 font-mono font-semibold text-sm tabular-nums ${
+                      isWeighted && spread > 0 ? "text-black" : "text-neutral-300"
+                    }`}>
+                      <span className="inline-block w-3 text-right">{spread > 0 ? "Δ" : ""}</span>
+                      <span className="inline-block w-6 text-left">{spread > 0 ? spread : "—"}</span>
                     </div>
                   </td>
                 </tr>
