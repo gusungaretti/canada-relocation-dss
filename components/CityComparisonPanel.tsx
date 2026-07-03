@@ -27,8 +27,6 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
     .map(slug => cities.find(c => c.slug === slug))
     .filter((c): c is ScoredCity => !!c)
 
-  const activeFactors = FACTOR_META.filter(f => weights[f.key] > 0)
-
   function scoreColor(score: number) {
     const t = Math.max(0, Math.min(100, score)) / 100
     const red:    [number,number,number] = [239, 68,  68]
@@ -77,23 +75,31 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                   <div className="text-[10px] text-neutral-300 font-mono">overall</div>
                 </th>
               ))}
+              <th className="px-6 py-4 text-center border-l border-black/[0.04] w-24">
+                <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Spread</span>
+              </th>
             </tr>
           </thead>
 
           {/* Factor rows */}
           <tbody>
-            {activeFactors.map(({ key, label, color }) => {
+            {FACTOR_META.map(({ key, label, color }) => {
               const scores = selected.map(c => c.factorScores[key])
               const best = Math.max(...scores)
+              const worst = Math.min(...scores)
+              const spread = best - worst
+              const isWeighted = weights[key] > 0
 
               return (
-                <tr key={key} className="border-b border-black/[0.04] hover:bg-neutral-50/60 transition-colors">
+                <tr key={key} className={`border-b border-black/[0.04] hover:bg-neutral-50/60 transition-colors ${isWeighted ? "" : "opacity-50"}`}>
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 flex-shrink-0" style={{ backgroundColor: color }} />
                       <span className="text-sm text-neutral-600">{label}</span>
                     </div>
-                    <div className="text-[10px] text-neutral-300 font-mono mt-0.5 pl-3.5">{weights[key]}% weight</div>
+                    <div className="text-[10px] text-neutral-300 font-mono mt-0.5 pl-3.5">
+                      {isWeighted ? `${weights[key]}% weight` : "not ranked"}
+                    </div>
                   </td>
                   {selected.map(city => {
                     const score = city.factorScores[key]
@@ -113,17 +119,16 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                       </td>
                     )
                   })}
+                  <td className="px-6 py-3 text-center border-l border-black/[0.04]">
+                    <div className={`text-sm font-mono font-semibold ${spread > 0 ? "text-black" : "text-neutral-300"}`}>
+                      {spread > 0 ? `Δ ${spread}` : "—"}
+                    </div>
+                  </td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-
-        {activeFactors.length === 0 && (
-          <div className="flex items-center justify-center h-48 text-sm text-neutral-400">
-            Assign factors to tiers to see a comparison
-          </div>
-        )}
       </div>
     </div>
   )
