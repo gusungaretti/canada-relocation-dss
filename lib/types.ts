@@ -24,6 +24,8 @@ export interface City {
   pm25: number                   // μg/m³ annual avg (NAPS) — lower is better
   schoolRating: number           // 0–10 composite (Fraser Institute)
   subreddit?: string             // Reddit community name (e.g. "vancouver")
+  parentSlug?: string            // set for suburb entries — slug of the parent CMA
+  inheritedFields?: string[]     // field names copied from the parent CMA (no sub-CMA source exists)
 }
 
 export interface SubredditWord {
