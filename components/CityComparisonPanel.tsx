@@ -2,6 +2,8 @@
 
 import { X } from "lucide-react"
 import type { ScoredCity, Weights } from "@/lib/types"
+import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
+import FactorTooltip from "@/components/FactorTooltip"
 
 const FACTOR_META: { key: keyof Weights; label: string; color: string }[] = [
   { key: "walkability",   label: "Walkability",    color: "#3b82f6" },
@@ -97,7 +99,9 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                   <td className="px-6 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 flex-shrink-0" style={{ backgroundColor: dotColor }} />
-                      <span className={`text-sm ${isWeighted ? "text-neutral-600" : "text-neutral-300"}`}>{label}</span>
+                      <FactorTooltip text={FACTOR_DEFINITIONS[key]}>
+                        <span className={`text-sm ${isWeighted ? "text-neutral-600" : "text-neutral-300"}`}>{label}</span>
+                      </FactorTooltip>
                     </div>
                     <div className="text-[10px] text-neutral-300 font-mono mt-0.5 pl-3.5">
                       {isWeighted ? `${weights[key]}% weight` : "not ranked"}

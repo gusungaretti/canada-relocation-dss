@@ -3,9 +3,11 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { scoreCities } from "@/lib/scoring"
 import SubredditWordCloud from "@/components/SubredditWordCloud"
+import FactorTooltip from "@/components/FactorTooltip"
+import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
 import citiesRaw from "@/data/cities.json"
 import subredditWordsRaw from "@/data/subreddit_words.json"
-import type { City, SubredditWord } from "@/lib/types"
+import type { City, SubredditWord, Weights } from "@/lib/types"
 
 const subredditWords = subredditWordsRaw as Record<string, SubredditWord[]>
 
@@ -20,10 +22,12 @@ function scoreColor(score: number) {
   return "#dc2626"
 }
 
-function ScoreRow({ label, score, color, raw }: { label: string; score: number; color: string; raw: string }) {
+function ScoreRow({ label, factorKey, score, color, raw }: { label: string; factorKey: keyof Weights; score: number; color: string; raw: string }) {
   return (
     <div className="grid items-center gap-6 py-4 border-t border-black/[0.06]" style={{ gridTemplateColumns: "130px 1fr 44px 90px" }}>
-      <span className="text-sm text-neutral-500">{label}</span>
+      <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]}>
+        <span className="text-sm text-neutral-500">{label}</span>
+      </FactorTooltip>
       <div className="h-0.5 bg-neutral-100 overflow-hidden rounded-full">
         <div className="h-full rounded-full" style={{ width: `${score}%`, backgroundColor: color }} />
       </div>
@@ -107,15 +111,15 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-wide text-right">/100</span>
             <span className="text-xs font-mono text-neutral-400 uppercase tracking-wide text-right">Raw</span>
           </div>
-          <ScoreRow label="Walkability"   score={city.factorScores.walkability}   color="#3b82f6" raw={`${city.walkScore} WS`} />
-          <ScoreRow label="Affordability" score={city.factorScores.affordability} color="#10b981" raw={`$${city.avgRent1BR.toLocaleString()}`} />
-          <ScoreRow label="Safety"        score={city.factorScores.safety}        color="#f97316" raw={`CSI ${city.crimeIndex}`} />
-          <ScoreRow label="Weather"       score={city.factorScores.weather}       color="#0ea5e9" raw={`${city.avgTempC}°C`} />
-          <ScoreRow label="Socioeconomic" score={city.factorScores.income}        color="#8b5cf6" raw={`$${(city.medianHouseholdIncome / 1000).toFixed(0)}k`} />
-          <ScoreRow label="Transit"       score={city.factorScores.transit}       color="#06b6d4" raw={`${city.transitScore}/100`} />
-          <ScoreRow label="Employment"    score={city.factorScores.employment}    color="#84cc16" raw={`${city.unemploymentRate}% unemp`} />
-          <ScoreRow label="Air Quality"   score={city.factorScores.airQuality}    color="#64748b" raw={`${city.pm25} μg/m³`} />
-          <ScoreRow label="Education"     score={city.factorScores.education}     color="#f59e0b" raw={`${city.schoolRating}/10`} />
+          <ScoreRow label="Walkability"   factorKey="walkability"   score={city.factorScores.walkability}   color="#3b82f6" raw={`${city.walkScore} WS`} />
+          <ScoreRow label="Affordability" factorKey="affordability" score={city.factorScores.affordability} color="#10b981" raw={`$${city.avgRent1BR.toLocaleString()}`} />
+          <ScoreRow label="Safety"        factorKey="safety"        score={city.factorScores.safety}        color="#f97316" raw={`CSI ${city.crimeIndex}`} />
+          <ScoreRow label="Weather"       factorKey="weather"       score={city.factorScores.weather}       color="#0ea5e9" raw={`${city.avgTempC}°C`} />
+          <ScoreRow label="Socioeconomic" factorKey="income"        score={city.factorScores.income}        color="#8b5cf6" raw={`$${(city.medianHouseholdIncome / 1000).toFixed(0)}k`} />
+          <ScoreRow label="Transit"       factorKey="transit"       score={city.factorScores.transit}       color="#06b6d4" raw={`${city.transitScore}/100`} />
+          <ScoreRow label="Employment"    factorKey="employment"    score={city.factorScores.employment}    color="#84cc16" raw={`${city.unemploymentRate}% unemp`} />
+          <ScoreRow label="Air Quality"   factorKey="airQuality"    score={city.factorScores.airQuality}    color="#64748b" raw={`${city.pm25} μg/m³`} />
+          <ScoreRow label="Education"     factorKey="education"     score={city.factorScores.education}     color="#f59e0b" raw={`${city.schoolRating}/10`} />
         </div>
 
         {/* Community pulse — subreddit word cloud */}

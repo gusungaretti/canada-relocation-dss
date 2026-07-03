@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import type { Weights, WeatherType, UnitType } from "@/lib/types"
+import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
+import FactorTooltip from "@/components/FactorTooltip"
 
 type TierKey = "mustHave" | "niceToHave" | "bonus"
 type FactorKey = keyof Weights
@@ -161,7 +163,9 @@ export default function WeightSliders({
           <span className="text-[10px] font-mono text-neutral-300 w-3 text-right flex-shrink-0">{rank}</span>
         )}
         <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
-        <span className="text-sm text-black flex-1">{factor.label}</span>
+        <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]} className="flex-1">
+          <span className="text-sm text-black">{factor.label}</span>
+        </FactorTooltip>
         {showWeight && (
           <span className="text-[11px] font-mono text-neutral-400 tabular-nums">
             {Number.isFinite(weights[factorKey]) ? weights[factorKey] : 0}%
