@@ -29,6 +29,8 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
     .map(slug => cities.find(c => c.slug === slug))
     .filter((c): c is ScoredCity => !!c)
 
+  const hasActiveFactors = Object.values(weights).some(w => w > 0)
+
   function scoreColor(score: number) {
     const t = Math.max(0, Math.min(100, score)) / 100
     const red:    [number,number,number] = [239, 68,  68]
@@ -70,9 +72,9 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                   <div className="text-xs text-neutral-400 font-mono mt-0.5">{city.province}</div>
                   <div
                     className="text-2xl font-bold font-mono mt-2"
-                    style={{ color: scoreColor(city.totalScore) }}
+                    style={hasActiveFactors ? { color: scoreColor(city.totalScore) } : { color: "#d1d5db" }}
                   >
-                    {city.totalScore}
+                    {hasActiveFactors ? city.totalScore : "—"}
                   </div>
                   <div className="text-[10px] text-neutral-300 font-mono">overall</div>
                 </th>
