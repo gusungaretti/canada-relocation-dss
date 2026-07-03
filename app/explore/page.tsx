@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { SlidersHorizontal } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
+import { setHasActiveFactors } from "@/components/ScoreText"
 import { scoreCities } from "@/lib/scoring"
 import type { Weights, WeatherType, UnitType } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
@@ -57,6 +58,10 @@ export default function ExplorePage() {
     () => Object.values(weights).some(w => w > 0),
     [weights]
   )
+
+  useEffect(() => {
+    setHasActiveFactors(hasActiveFactors)
+  }, [hasActiveFactors])
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-white">

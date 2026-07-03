@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react"
 import { scoreCities } from "@/lib/scoring"
 import SubredditWordCloud from "@/components/SubredditWordCloud"
 import FactorTooltip from "@/components/FactorTooltip"
+import ScoreText from "@/components/ScoreText"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
 import citiesRaw from "@/data/cities.json"
 import suburbsRaw from "@/data/suburbs.json"
@@ -117,9 +118,11 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
             <h1 className="text-5xl font-bold tracking-tight text-black leading-none">{city.name}</h1>
           </div>
           <div className="text-right">
-            <div className="text-7xl font-bold font-mono leading-none" style={{ color: totalColor }}>
-              {city.totalScore}
-            </div>
+            <ScoreText
+              score={city.totalScore}
+              className="text-7xl font-bold font-mono leading-none block"
+              style={{ color: totalColor }}
+            />
             <div className="text-xs text-neutral-400 mt-2 font-mono">/ 100</div>
           </div>
         </div>
@@ -184,9 +187,11 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
                   <span className="flex-shrink-0 w-5 text-xs font-mono text-neutral-300 text-right">{i + 1}</span>
                   <span className="flex-1 text-sm font-medium text-black">{s.name}</span>
                   <span className="text-xs font-mono text-neutral-400">${s.avgRent1BR.toLocaleString()}/mo</span>
-                  <span className="text-sm font-mono font-bold" style={{ color: scoreColor(s.totalScore) }}>
-                    {s.totalScore}
-                  </span>
+                  <ScoreText
+                    score={s.totalScore}
+                    className="text-sm font-mono font-bold"
+                    style={{ color: scoreColor(s.totalScore) }}
+                  />
                 </Link>
               ))}
             </div>
