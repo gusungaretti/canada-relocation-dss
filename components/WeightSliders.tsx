@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import type { Weights, WeatherType, UnitType } from "@/lib/types"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
 import FactorTooltip from "@/components/FactorTooltip"
@@ -46,6 +46,33 @@ const DEFAULT_TIERS: Record<TierKey, FactorKey[]> = {
   mustHave:   [],
   niceToHave: [],
   bonus:      [],
+}
+
+const TIERS_STORAGE_KEY = "mm_tiers"
+const ALL_FACTOR_KEYS = FACTOR_CONFIG.map((f) => f.key)
+
+function loadTiers(): Record<TierKey, FactorKey[]> | null {
+  try {
+    const raw = localStorage.getItem(TIERS_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    const seen = new Set<FactorKey>()
+    for (const tier of TIER_CONFIG) {
+      const list = parsed[tier.key]
+      if (!Array.isArray(list)) return null
+      for (const f of list) {
+        if (!ALL_FACTOR_KEYS.includes(f) || seen.has(f)) return null
+        seen.add(f)
+      }
+    }
+    return {
+      mustHave: parsed.mustHave ?? [],
+      niceToHave: parsed.niceToHave ?? [],
+      bonus: parsed.bonus ?? [],
+    }
+  } catch {
+    return null
+  }
 }
 
 // Ratio system: each Must Have factor always outweighs each Nice to Have factor,
@@ -98,9 +125,21 @@ export default function WeightSliders({
   const [tiers, setTiers] = useState<Record<TierKey, FactorKey[]>>(DEFAULT_TIERS)
   const [dragging, setDragging] = useState<FactorKey | null>(null)
   const [dragOverZone, setDragOverZone] = useState<DropZone | null>(null)
+  const skipNextSave = useRef(true)
+
+  // Restore persisted tiers after mount (client-only — avoids SSR/hydration mismatch)
+  useEffect(() => {
+    const saved = loadTiers()
+    if (saved) setTiers(saved)
+  }, [])
 
   useEffect(() => {
     onChange(computeWeights(tiers))
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+    } else {
+      localStorage.setItem(TIERS_STORAGE_KEY, JSON.stringify(tiers))
+    }
   }, [tiers]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const assignedKeys = new Set(Object.values(tiers).flat())

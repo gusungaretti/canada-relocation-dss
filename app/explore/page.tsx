@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { SlidersHorizontal } from "lucide-react"
@@ -33,6 +33,32 @@ const DEFAULT_WEIGHTS: Weights = {
   education: 0,
 }
 
+const WEATHER_VALUES: WeatherType[] = ["warm", "mild", "four_seasons", "dry"]
+const UNIT_VALUES: UnitType[] = ["studio", "one_bed", "two_bed", "three_bed"]
+
+function usePersisted<T>(key: string, value: T, isValid: (v: unknown) => v is T, setValue: (v: T) => void) {
+  const skipNextSave = useRef(true)
+
+  useEffect(() => {
+    if (skipNextSave.current) {
+      skipNextSave.current = false
+    } else {
+      localStorage.setItem(key, JSON.stringify(value))
+    }
+  }, [key, value]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(key)
+      if (raw === null) return
+      const parsed = JSON.parse(raw)
+      if (isValid(parsed)) setValue(parsed)
+    } catch {
+      // ignore malformed storage
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+}
+
 export default function ExplorePage() {
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS)
   const [weatherType, setWeatherType] = useState<WeatherType>("four_seasons")
@@ -42,6 +68,22 @@ export default function ExplorePage() {
   const [showSliders, setShowSliders] = useState(false)
   const [compareSet, setCompareSet] = useState<string[]>([])
   const [showComparison, setShowComparison] = useState(false)
+
+  usePersisted<WeatherType>(
+    "mm_weatherType", weatherType,
+    (v): v is WeatherType => typeof v === "string" && WEATHER_VALUES.includes(v as WeatherType),
+    setWeatherType
+  )
+  usePersisted<UnitType>(
+    "mm_unitType", unitType,
+    (v): v is UnitType => typeof v === "string" && UNIT_VALUES.includes(v as UnitType),
+    setUnitType
+  )
+  usePersisted<number>(
+    "mm_budget", budget,
+    (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= 500 && v <= 5000,
+    setBudget
+  )
 
   function toggleCompare(slug: string) {
     setCompareSet(prev =>
