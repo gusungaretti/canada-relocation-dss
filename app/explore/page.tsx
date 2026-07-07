@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { SlidersHorizontal } from "lucide-react"
+import { SlidersHorizontal, Search } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
@@ -123,6 +123,13 @@ export default function ExplorePage() {
         <div className="h-4 w-px bg-black/10" />
         <span className="text-sm text-neutral-400">Explore Canadian Cities</span>
         <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/search"
+            className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-black transition-colors"
+          >
+            <Search size={12} />
+            <span className="hidden sm:inline">Search</span>
+          </Link>
           <Link
             href="/methodology"
             className="text-xs text-neutral-400 hover:text-black transition-colors hidden sm:block"

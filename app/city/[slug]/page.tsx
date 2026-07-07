@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Search } from "lucide-react"
 import { scoreCities } from "@/lib/scoring"
 import SubredditWordCloud from "@/components/SubredditWordCloud"
 import FactorTooltip from "@/components/FactorTooltip"
@@ -87,6 +87,10 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
           <Link href="/explore" className="flex items-center gap-1.5 text-sm text-neutral-400 hover:text-black transition-colors">
             <ArrowLeft size={14} />
             Back to explore
+          </Link>
+          <Link href="/search" className="ml-auto flex items-center gap-1.5 text-sm text-neutral-400 hover:text-black transition-colors">
+            <Search size={14} />
+            Search
           </Link>
         </div>
       </header>

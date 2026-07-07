@@ -11,6 +11,12 @@ export default function LandingPage() {
           <span className="text-sm font-semibold text-white drop-shadow-sm">Maple Moving</span>
           <div className="flex items-center gap-3">
             <Link
+              href="/search"
+              className="text-sm font-medium text-white/80 hover:text-white transition-colors"
+            >
+              Search
+            </Link>
+            <Link
               href="/methodology"
               className="text-sm font-medium text-white/80 hover:text-white transition-colors"
             >
