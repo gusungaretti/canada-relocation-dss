@@ -1,4 +1,6 @@
-import type { City, Weights, WeatherType, UnitType, FactorScores, ScoredCity } from "./types"
+import type { City, Weights, WeatherType, UnitType, FactorScores, ScoredCity, Tiers, Goals, ScoringMethod } from "./types"
+import { computeWeights, tierOf, TIER_ORDER } from "./priorities"
+import { AFFORDABILITY_TARGET_SCORE, WEATHER_TARGET_SCORE } from "./goalConfig"
 
 function minMaxNormalize(value: number, min: number, max: number): number {
   if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max)) return 50
@@ -47,6 +49,50 @@ function weatherScore(city: City, allCities: City[], type: WeatherType): number 
   }
 }
 
+// Dataset min/max for every min–max-normalized metric. Shared by the factor-score
+// computation and by the goal→target-score mapping so both use identical bounds.
+type Stats = ReturnType<typeof getStats>
+function getStats(cities: City[]) {
+  const range = (vals: number[]) => ({ min: Math.min(...vals), max: Math.max(...vals) })
+  return {
+    walk:   range(cities.map((c) => c.walkScore)),
+    crime:  range(cities.map((c) => c.crimeIndex)),
+    income: range(cities.map((c) => c.medianHouseholdIncome)),
+    transit: range(cities.map((c) => c.transitScore)),
+    unemp:  range(cities.map((c) => c.unemploymentRate)),
+    pm25:   range(cities.map((c) => c.pm25)),
+    school: range(cities.map((c) => c.schoolRating)),
+  }
+}
+
+// Normalize every raw metric into a comparable 0–100 factor score, where higher is
+// always better. This is shared by the weighted model and both goal-programming methods.
+function computeFactorScores(
+  cities: City[],
+  stats: Stats,
+  weatherType: WeatherType,
+  unitType: UnitType,
+  budget: number
+): { city: City; factorScores: FactorScores }[] {
+  return cities.map((city) => {
+    const rent = getRent(city, unitType)
+    const factorScores: FactorScores = {
+      walkability:   minMaxNormalize(city.walkScore, stats.walk.min, stats.walk.max),
+      affordability: affordabilityScore(rent, budget),
+      safety:        invertedNormalize(city.crimeIndex, stats.crime.min, stats.crime.max),
+      weather:       weatherScore(city, cities, weatherType),
+      income:        minMaxNormalize(city.medianHouseholdIncome, stats.income.min, stats.income.max),
+      transit:       minMaxNormalize(city.transitScore, stats.transit.min, stats.transit.max),
+      employment:    invertedNormalize(city.unemploymentRate, stats.unemp.min, stats.unemp.max),
+      airQuality:    invertedNormalize(city.pm25, stats.pm25.min, stats.pm25.max),
+      education:     minMaxNormalize(city.schoolRating, stats.school.min, stats.school.max),
+    }
+    return { city, factorScores }
+  })
+}
+
+// Classic weighted additive model — maximize the weighted sum of factor scores.
+// Kept as a comparison baseline against the goal-programming methods.
 export function scoreCities(
   cities: City[],
   weights: Weights,
@@ -54,49 +100,105 @@ export function scoreCities(
   unitType: UnitType = "one_bed",
   budget: number = 2000
 ): ScoredCity[] {
-  const walkScores  = cities.map((c) => c.walkScore)
-  const crimes      = cities.map((c) => c.crimeIndex)
-  const incomes     = cities.map((c) => c.medianHouseholdIncome)
-  const transits    = cities.map((c) => c.transitScore)
-  const unemps      = cities.map((c) => c.unemploymentRate)
-  const pm25s       = cities.map((c) => c.pm25)
-  const schoolRates = cities.map((c) => c.schoolRating)
-
-  const minWalk  = Math.min(...walkScores),  maxWalk  = Math.max(...walkScores)
-  const minCrime = Math.min(...crimes),      maxCrime = Math.max(...crimes)
-  const minInc   = Math.min(...incomes),     maxInc   = Math.max(...incomes)
-  const minTrans = Math.min(...transits),    maxTrans = Math.max(...transits)
-  const minUnemp = Math.min(...unemps),      maxUnemp = Math.max(...unemps)
-  const minPm25  = Math.min(...pm25s),       maxPm25  = Math.max(...pm25s)
-  const minSch   = Math.min(...schoolRates), maxSch   = Math.max(...schoolRates)
-
   const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
   const w = totalWeight === 0
     ? Object.fromEntries(Object.keys(weights).map((k) => [k, 1 / Object.keys(weights).length])) as Record<keyof Weights, number>
     : Object.fromEntries(Object.entries(weights).map(([k, v]) => [k, v / totalWeight])) as Record<keyof Weights, number>
 
-  const scored = cities.map((city) => {
-    const rent = getRent(city, unitType)
-    const factorScores: FactorScores = {
-      walkability:   minMaxNormalize(city.walkScore, minWalk, maxWalk),
-      affordability: affordabilityScore(rent, budget),
-      safety:        invertedNormalize(city.crimeIndex, minCrime, maxCrime),
-      weather:       weatherScore(city, cities, weatherType),
-      income:        minMaxNormalize(city.medianHouseholdIncome, minInc, maxInc),
-      transit:       minMaxNormalize(city.transitScore, minTrans, maxTrans),
-      employment:    invertedNormalize(city.unemploymentRate, minUnemp, maxUnemp),
-      airQuality:    invertedNormalize(city.pm25, minPm25, maxPm25),
-      education:     minMaxNormalize(city.schoolRating, minSch, maxSch),
-    }
-
+  const scored = computeFactorScores(cities, getStats(cities), weatherType, unitType, budget).map(({ city, factorScores }) => {
     const totalScore = Math.round(
       Object.entries(factorScores).reduce((sum, [key, score]) => sum + score * w[key as keyof Weights], 0)
     )
-
     return { ...city, factorScores, totalScore }
   })
 
   return scored.sort((a, b) => b.totalScore - a.totalScore)
+}
+
+const FACTOR_KEYS = Object.keys({
+  walkability: 0, affordability: 0, safety: 0, weather: 0, income: 0,
+  transit: 0, employment: 0, airQuality: 0, education: 0,
+} satisfies Record<keyof Weights, number>) as (keyof Weights)[]
+
+// One-sided deviation: how far a city's factor score falls SHORT of its target.
+// All factor scores are "higher is better", so we only ever penalize undershooting.
+function undershoot(factorScore: number, targetScore: number): number {
+  return Math.max(0, targetScore - factorScore)
+}
+
+// Map each raw-unit goal onto the same normalized 0–100 scale the cities are measured
+// on, using identical dataset bounds and normalization direction. A city that exactly
+// meets the raw goal lands right on its target score, so deviation math stays uniform.
+function goalTargetScores(stats: Stats, goals: Goals): FactorScores {
+  return {
+    walkability:   minMaxNormalize(goals.walkability, stats.walk.min, stats.walk.max),
+    affordability: AFFORDABILITY_TARGET_SCORE,
+    safety:        invertedNormalize(goals.safety, stats.crime.min, stats.crime.max),
+    weather:       WEATHER_TARGET_SCORE,
+    income:        minMaxNormalize(goals.income, stats.income.min, stats.income.max),
+    transit:       minMaxNormalize(goals.transit, stats.transit.min, stats.transit.max),
+    employment:    invertedNormalize(goals.employment, stats.unemp.min, stats.unemp.max),
+    airQuality:    invertedNormalize(goals.airQuality, stats.pm25.min, stats.pm25.max),
+    education:     minMaxNormalize(goals.education, stats.school.min, stats.school.max),
+  }
+}
+
+// Goal programming. Instead of maximizing a blended score, we minimize how far each
+// city deviates from the user's per-factor goals, prioritized by tier.
+//
+//   goalWeighted   (Archimedean): minimize Σ wᵢ · deviationᵢ, wᵢ = tier weight.
+//   goalPreemptive (lexicographic): minimize Must-Have deviations first; only break
+//                  ties with Nice-to-Have, then Bonus.
+//
+// `totalScore` is reported as a 0–100 goal-attainment score (100 = every goal met),
+// so the rest of the UI can render it exactly like the weighted model's score.
+export function scoreCitiesByGoal(
+  cities: City[],
+  tiers: Tiers,
+  goals: Goals,
+  method: Exclude<ScoringMethod, "weighted"> = "goalWeighted",
+  weatherType: WeatherType = "four_seasons",
+  unitType: UnitType = "one_bed",
+  budget: number = 2000
+): ScoredCity[] {
+  const weights = computeWeights(tiers)
+  const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
+  const stats = getStats(cities)
+  const targets = goalTargetScores(stats, goals)
+
+  const scored = computeFactorScores(cities, stats, weatherType, unitType, budget).map(({ city, factorScores }) => {
+    const goalDeviations = { ...factorScores } as FactorScores
+    for (const key of FACTOR_KEYS) {
+      goalDeviations[key] = tierOf(tiers, key) ? undershoot(factorScores[key], targets[key]) : 0
+    }
+
+    // Weighted (Archimedean) penalty → 0–100 goal-attainment score.
+    const weightedDeviation = totalWeight === 0
+      ? 0
+      : FACTOR_KEYS.reduce((sum, key) => sum + (weights[key] / totalWeight) * goalDeviations[key], 0)
+    const totalScore = Math.round(Math.max(0, 100 - weightedDeviation))
+
+    // Per-tier total deviation, used as the lexicographic sort key for preemptive GP.
+    const tierDeviation = TIER_ORDER.map((t) =>
+      tiers[t].reduce((sum, key) => sum + goalDeviations[key], 0)
+    )
+
+    const scoredCity: ScoredCity = { ...city, factorScores, goalDeviations, totalScore }
+    return { scoredCity, tierDeviation }
+  })
+
+  scored.sort((a, b) => {
+    if (method === "goalPreemptive") {
+      for (let i = 0; i < a.tierDeviation.length; i++) {
+        const diff = a.tierDeviation[i] - b.tierDeviation[i]
+        if (Math.abs(diff) > 1e-9) return diff // lower deviation ranks higher
+      }
+      return b.scoredCity.totalScore - a.scoredCity.totalScore
+    }
+    return b.scoredCity.totalScore - a.scoredCity.totalScore
+  })
+
+  return scored.map(({ scoredCity }) => scoredCity)
 }
 
 export function scoreColor(score: number): string {

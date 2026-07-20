@@ -88,10 +88,13 @@ export default function MethodologyPage() {
             </p>
           </Step>
 
-          <Step n="02" title="Tiers → weights">
+          <Step n="02" title="Tiers → weights (or priorities)">
             <p>
               You assign each factor to one of three tiers by dragging it — or leave it unranked, in which
-              case it contributes nothing to the score. Each tier carries a fixed per-factor multiplier:
+              case it contributes nothing to the score. The tiers do double duty: they become factor
+              <span className="font-semibold text-black"> weights</span> in the weighted &amp; Archimedean
+              models, and strict <span className="font-semibold text-black">priority levels</span> in the
+              preemptive model (step 03). Each tier carries a fixed per-factor multiplier:
             </p>
             <Formula>
               Must Have = 3× &nbsp;&nbsp;·&nbsp;&nbsp; Nice to Have = 2× &nbsp;&nbsp;·&nbsp;&nbsp; Bonus = 1×
@@ -118,12 +121,58 @@ export default function MethodologyPage() {
             </p>
           </Step>
 
-          <Step n="03" title="Final score">
-            <p>The total score is the weighted sum of all 9 factor scores:</p>
-            <Formula>Total Score = Σ (factor score × factor weight)</Formula>
+          <Step n="03" title="Final score — pick a method">
             <p>
-              Rounded to the nearest integer, and cities are sorted descending. If no factors are assigned
-              to any tier, the ranking list stays empty rather than showing a meaningless default order.
+              The 0–100 factor scores and tiers feed into one of three interchangeable scoring methods,
+              selectable in the sidebar. All three share steps 01–02; they differ only in how they turn
+              factor scores into a ranking.
+            </p>
+
+            <div>
+              <span className="font-semibold text-black">A. Weighted score</span> — the classic compensatory
+              baseline. Total score is the weighted sum of all 9 factor scores:
+              <Formula>Total Score = Σ (factor score × factor weight)</Formula>
+              <p className="mt-2">
+                A great score on one factor can fully compensate for a poor score on another. Higher is better;
+                cities are sorted descending.
+              </p>
+            </div>
+
+            <div>
+              <span className="font-semibold text-black">B. Goal programming (weighted)</span> — instead of
+              maximizing a blend, you set a <em>target</em> for each ranked factor in its own real-world units —
+              e.g. &ldquo;rent ≤ $2,000/mo&rdquo;, &ldquo;Walker&apos;s paradise&rdquo;, &ldquo;unemployment ≤ 5%&rdquo;,
+              &ldquo;PM2.5 ≤ 8 μg/m³&rdquo;. Each raw target is mapped onto the same 0–100 scale as the factor
+              scores (step 01), so a city sitting exactly on your target lands on its <em>target score</em>. The
+              engine then minimizes how far each city falls <em>short</em> of that target:
+              <Formula>deviation(factor) = max(0, target score − factor score)</Formula>
+              <Formula>penalty = Σ (weight × deviation) &nbsp;·&nbsp; Goal Attainment = 100 − penalty</Formula>
+              <p className="mt-2">
+                This is <span className="font-semibold text-black">Archimedean</span> goal programming — tier
+                weights become penalties on missed goals. A city that meets every target scores 100. Setting goals
+                in real units (not an abstract 0–100) is what keeps the targets meaningful.
+              </p>
+            </div>
+
+            <div>
+              <span className="font-semibold text-black">C. Goal programming (preemptive)</span> — the same
+              targets and deviations, but tiers act as strict <span className="font-semibold text-black">priority
+              levels</span> instead of weights. Cities are compared by total Must&nbsp;Have deviation first;
+              only ties are broken by Nice&nbsp;to&nbsp;Have, then by Bonus:
+              <Formula>
+                minimize (Σ Must-Have dev) ≫ then (Σ Nice-to-Have dev) ≫ then (Σ Bonus dev)
+              </Formula>
+              <p className="mt-2">
+                This is <span className="font-semibold text-black">lexicographic</span> goal programming: a city
+                that misses a Must&nbsp;Have goal can never be rescued by excelling at a Bonus factor. It formalizes
+                the intent behind the three tiers — satisfy what matters most, first.
+              </p>
+            </div>
+
+            <p className="text-xs text-neutral-400 pt-1">
+              In all three methods, cities are sorted best-first and the displayed 0–100 number is the goal-attainment
+              (or weighted) score. If no factors are assigned to any tier, the ranking list stays empty rather than
+              showing a meaningless default order.
             </p>
           </Step>
         </div>
