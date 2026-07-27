@@ -8,8 +8,10 @@ import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
 import { setHasActiveFactors } from "@/components/ScoreText"
-import { scoreCities } from "@/lib/scoring"
-import type { Weights, WeatherType, UnitType } from "@/lib/types"
+import { scoreCitiesByGoal } from "@/lib/scoring"
+import { EMPTY_TIERS } from "@/lib/priorities"
+import { DEFAULT_GOALS } from "@/lib/goalConfig"
+import type { Weights, WeatherType, UnitType, Tiers, Goals, City } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
 
 const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
@@ -45,7 +47,7 @@ function usePersisted<T>(key: string, value: T, isValid: (v: unknown) => v is T,
     } else {
       localStorage.setItem(key, JSON.stringify(value))
     }
-  }, [key, value]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key, value])
 
   useEffect(() => {
     try {
@@ -61,6 +63,8 @@ function usePersisted<T>(key: string, value: T, isValid: (v: unknown) => v is T,
 
 export default function ExplorePage() {
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS)
+  const [tiers, setTiers] = useState<Tiers>(EMPTY_TIERS)
+  const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS)
   const [weatherType, setWeatherType] = useState<WeatherType>("four_seasons")
   const [unitType, setUnitType] = useState<UnitType>("one_bed")
   const [budget, setBudget] = useState(2000)
@@ -92,8 +96,16 @@ export default function ExplorePage() {
   }
 
   const rankedCities = useMemo(
-    () => scoreCities(citiesRaw as Parameters<typeof scoreCities>[0], weights, weatherType, unitType, budget),
-    [weights, weatherType, unitType, budget]
+    () => scoreCitiesByGoal(
+      citiesRaw as City[],
+      tiers,
+      goals,
+      "goalPreemptive",
+      weatherType,
+      unitType,
+      budget
+    ),
+    [tiers, goals, weatherType, unitType, budget]
   )
 
   const hasActiveFactors = useMemo(
@@ -137,7 +149,7 @@ export default function ExplorePage() {
             How scoring works
           </Link>
           <span className="text-xs text-neutral-400 hidden sm:block font-mono">
-            {rankedCities.length} CMAs · weights sum to 100%
+            {rankedCities.length} CMAs · preemptive goal programming
           </span>
           <button
             onClick={() => setShowSliders(!showSliders)}
@@ -154,12 +166,15 @@ export default function ExplorePage() {
         <aside
           className={`${
             showSliders ? "flex" : "hidden"
-          } sm:flex flex-col w-full sm:w-72 lg:w-80 flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
+          } sm:flex flex-col w-full sm:w-96 lg:w-[32rem] flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
         >
           <div className="p-6 pt-8">
             <WeightSliders
               weights={weights}
               onChange={setWeights}
+              onTiersChange={setTiers}
+              goals={goals}
+              onGoalsChange={setGoals}
               weatherType={weatherType}
               onWeatherTypeChange={setWeatherType}
               unitType={unitType}

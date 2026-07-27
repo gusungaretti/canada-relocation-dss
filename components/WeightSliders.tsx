@@ -1,19 +1,22 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import type { Weights, WeatherType, UnitType } from "@/lib/types"
+import { ChevronDown } from "lucide-react"
+import type { Weights, WeatherType, UnitType, Tiers, Goals, TierKey } from "@/lib/types"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
+import { computeWeights, EMPTY_TIERS, tierOf } from "@/lib/priorities"
+import { FACTOR_GOAL_SPECS, RENT_RANGE, DEFAULT_GOALS as CONFIG_DEFAULT_GOALS, formatGoal } from "@/lib/goalConfig"
 import FactorTooltip from "@/components/FactorTooltip"
 
-type TierKey = "mustHave" | "niceToHave" | "bonus"
 type FactorKey = keyof Weights
-type DropZone = TierKey | "unranked"
 
-const TIER_CONFIG: { key: TierKey; label: string; baseWeight: number; description: string }[] = [
-  { key: "mustHave",   label: "Must Have",    baseWeight: 60, description: "Heavily influences ranking" },
-  { key: "niceToHave", label: "Nice to Have", baseWeight: 30, description: "Meaningful but not critical" },
-  { key: "bonus",      label: "Bonus",        baseWeight: 10, description: "Tie-breaker only" },
+const TIER_OPTIONS: { key: TierKey; label: string; short: string }[] = [
+  { key: "mustHave",   label: "Must Have",    short: "Must" },
+  { key: "niceToHave", label: "Nice to Have", short: "Nice" },
+  { key: "bonus",      label: "Bonus",        short: "Bonus" },
 ]
+
+const DEFAULT_GOALS: Goals = CONFIG_DEFAULT_GOALS
 
 const FACTOR_CONFIG: { key: FactorKey; label: string; color: string }[] = [
   { key: "walkability",   label: "Walkability",   color: "#3b82f6" },
@@ -42,22 +45,19 @@ const UNIT_TYPES: { value: UnitType; label: string }[] = [
 ]
 
 // All factors start unranked — user assigns them to tiers
-const DEFAULT_TIERS: Record<TierKey, FactorKey[]> = {
-  mustHave:   [],
-  niceToHave: [],
-  bonus:      [],
-}
+const DEFAULT_TIERS: Tiers = EMPTY_TIERS
 
 const TIERS_STORAGE_KEY = "mm_tiers"
+const GOALS_STORAGE_KEY = "mm_goals_v2"
 const ALL_FACTOR_KEYS = FACTOR_CONFIG.map((f) => f.key)
 
-function loadTiers(): Record<TierKey, FactorKey[]> | null {
+function loadTiers(): Tiers | null {
   try {
     const raw = localStorage.getItem(TIERS_STORAGE_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw)
     const seen = new Set<FactorKey>()
-    for (const tier of TIER_CONFIG) {
+    for (const tier of TIER_OPTIONS) {
       const list = parsed[tier.key]
       if (!Array.isArray(list)) return null
       for (const f of list) {
@@ -75,39 +75,28 @@ function loadTiers(): Record<TierKey, FactorKey[]> | null {
   }
 }
 
-// Ratio system: each Must Have factor always outweighs each Nice to Have factor,
-// regardless of how many factors are in each tier. 3:2:1 per-factor ratio.
-const TIER_MULTIPLIERS: Record<TierKey, number> = { mustHave: 3, niceToHave: 2, bonus: 1 }
-
-function computeWeights(tiers: Record<TierKey, FactorKey[]>): Weights {
-  const weights: Weights = { walkability: 0, affordability: 0, safety: 0, weather: 0, income: 0, transit: 0, employment: 0, airQuality: 0, education: 0 }
-  const divisor = TIER_CONFIG.reduce((sum, t) => sum + tiers[t.key].length * TIER_MULTIPLIERS[t.key], 0)
-  if (divisor === 0) return weights
-
-  const x = 100 / divisor
-  const fractionals: { key: FactorKey; frac: number }[] = []
-
-  TIER_CONFIG.forEach((tier) => {
-    const perFactor = x * TIER_MULTIPLIERS[tier.key]
-    tiers[tier.key].forEach((f) => {
-      const floored = Math.floor(perFactor)
-      weights[f] = floored
-      fractionals.push({ key: f, frac: perFactor - floored })
-    })
-  })
-
-  const total = Object.values(weights).reduce((a, b) => a + b, 0)
-  fractionals
-    .sort((a, b) => b.frac - a.frac)
-    .slice(0, 100 - total)
-    .forEach(({ key }) => { weights[key]++ })
-
-  return weights
+function loadGoals(): Goals | null {
+  try {
+    const raw = localStorage.getItem(GOALS_STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    const goals = { ...DEFAULT_GOALS }
+    for (const key of ALL_FACTOR_KEYS) {
+      const v = parsed[key]
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) goals[key] = v
+    }
+    return goals
+  } catch {
+    return null
+  }
 }
 
 interface Props {
   weights: Weights
   onChange: (weights: Weights) => void
+  onTiersChange: (tiers: Tiers) => void
+  goals: Goals
+  onGoalsChange: (goals: Goals) => void
   weatherType: WeatherType
   onWeatherTypeChange: (t: WeatherType) => void
   unitType: UnitType
@@ -117,24 +106,31 @@ interface Props {
 }
 
 export default function WeightSliders({
-  onChange,
+  onChange, onTiersChange,
+  goals, onGoalsChange,
   weatherType, onWeatherTypeChange,
   unitType, onUnitTypeChange,
   budget, onBudgetChange,
 }: Props) {
-  const [tiers, setTiers] = useState<Record<TierKey, FactorKey[]>>(DEFAULT_TIERS)
-  const [dragging, setDragging] = useState<FactorKey | null>(null)
-  const [dragOverZone, setDragOverZone] = useState<DropZone | null>(null)
+  const [tiers, setTiers] = useState<Tiers>(DEFAULT_TIERS)
+  const [expanded, setExpanded] = useState<Set<FactorKey>>(new Set())
   const skipNextSave = useRef(true)
+  const skipNextGoalSave = useRef(true)
 
-  // Restore persisted tiers after mount (client-only — avoids SSR/hydration mismatch)
+  // Restore persisted state after mount (client-only — avoids SSR/hydration mismatch).
+  // Restoring in an effect (rather than a lazy initializer) is intentional here.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
-    const saved = loadTiers()
-    if (saved) setTiers(saved)
-  }, [])
+    const savedTiers = loadTiers()
+    if (savedTiers) setTiers(savedTiers)
+    const savedGoals = loadGoals()
+    if (savedGoals) onGoalsChange(savedGoals)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     onChange(computeWeights(tiers))
+    onTiersChange(tiers)
     if (skipNextSave.current) {
       skipNextSave.current = false
     } else {
@@ -142,73 +138,226 @@ export default function WeightSliders({
     }
   }, [tiers]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (skipNextGoalSave.current) {
+      skipNextGoalSave.current = false
+    } else {
+      localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals))
+    }
+  }, [goals])
+
+  function setGoal(factor: FactorKey, value: number) {
+    onGoalsChange({ ...goals, [factor]: value })
+  }
+
   const assignedKeys = new Set(Object.values(tiers).flat())
   const unrankedFactors = FACTOR_CONFIG.filter(f => !assignedKeys.has(f.key))
-  const weights = computeWeights(tiers)
+  const selectedFactors = FACTOR_CONFIG.filter(f => assignedKeys.has(f.key))
 
-  function findTier(factor: FactorKey): TierKey | null {
-    for (const tier of TIER_CONFIG) {
-      if (tiers[tier.key].includes(factor)) return tier.key
-    }
-    return null
+  // Move a factor into `target`, removing it from any tier it currently sits in.
+  function moveToTier(factor: FactorKey, target: TierKey) {
+    setTiers((prev) => {
+      const cleared: Tiers = {
+        mustHave: prev.mustHave.filter((f) => f !== factor),
+        niceToHave: prev.niceToHave.filter((f) => f !== factor),
+        bonus: prev.bonus.filter((f) => f !== factor),
+      }
+      return { ...cleared, [target]: [...cleared[target], factor] }
+    })
   }
 
-  function dropOnTier(targetTier: TierKey) {
-    if (!dragging) return
-    const sourceTier = findTier(dragging)
-    if (sourceTier === targetTier) { setDragging(null); setDragOverZone(null); return }
+  // Add an unranked factor to the default tier, and expand it so its scale is ready to set.
+  function addFactor(factor: FactorKey) {
+    moveToTier(factor, "niceToHave")
+    setExpanded((prev) => new Set(prev).add(factor))
+  }
+
+  // Return a factor to the Available column (remove from every tier).
+  function removeFactor(factor: FactorKey) {
     setTiers((prev) => ({
-      ...prev,
-      ...(sourceTier ? { [sourceTier]: prev[sourceTier].filter((f) => f !== dragging) } : {}),
-      [targetTier]: [...prev[targetTier], dragging],
+      mustHave: prev.mustHave.filter((f) => f !== factor),
+      niceToHave: prev.niceToHave.filter((f) => f !== factor),
+      bonus: prev.bonus.filter((f) => f !== factor),
     }))
-    setDragging(null)
-    setDragOverZone(null)
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      next.delete(factor)
+      return next
+    })
   }
 
-  function dropOnUnranked() {
-    if (!dragging) return
-    const sourceTier = findTier(dragging)
-    if (!sourceTier) { setDragging(null); setDragOverZone(null); return }
-    setTiers((prev) => ({
-      ...prev,
-      [sourceTier]: prev[sourceTier].filter((f) => f !== dragging),
-    }))
-    setDragging(null)
-    setDragOverZone(null)
+  function toggleExpand(factor: FactorKey) {
+    setExpanded((prev) => {
+      const next = new Set(prev)
+      if (next.has(factor)) next.delete(factor)
+      else next.add(factor)
+      return next
+    })
   }
 
-  function onDragOver(e: React.DragEvent, zone: DropZone) {
-    e.preventDefault()
-    setDragOverZone(zone)
+  function changeUnitType(ut: UnitType) {
+    onUnitTypeChange(ut)
+    const r = RENT_RANGE[ut]
+    if (budget < r.min) onBudgetChange(r.min)
+    else if (budget > r.max) onBudgetChange(r.max)
   }
 
-  function onDragLeave(e: React.DragEvent) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverZone(null)
-  }
+  const pillBase = "text-[11px] px-2 py-1 border transition-colors"
+  const pill = (selected: boolean) =>
+    `${pillBase} ${selected ? "bg-black text-white border-black" : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"}`
 
-  function FactorCard({ factorKey, showWeight, rank }: { factorKey: FactorKey; showWeight: boolean; rank?: number }) {
+  // The real-unit goal input for a factor, shown only when it's selected.
+  function GoalControl({ factorKey }: { factorKey: FactorKey }) {
     const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
+    const spec = FACTOR_GOAL_SPECS[factorKey]
+    const color = factor.color
+
+    if (spec.control === "discrete") {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {spec.options!.map((o) => (
+            <button key={o.value} onClick={() => setGoal(factorKey, o.value)} className={pill(goals[factorKey] === o.value)}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    if (spec.control === "climate") {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {WEATHER_TYPES.map((wt) => (
+            <button key={wt.value} onClick={() => onWeatherTypeChange(wt.value)} title={wt.hint} className={pill(weatherType === wt.value)}>
+              {wt.label}
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    if (spec.control === "budget") {
+      const r = RENT_RANGE[unitType]
+      return (
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-1">
+            {UNIT_TYPES.map((ut) => (
+              <button key={ut.value} onClick={() => changeUnitType(ut.value)} className={pill(unitType === ut.value)}>
+                {ut.label}
+              </button>
+            ))}
+          </div>
+          <input
+            type="range"
+            min={r.min}
+            max={r.max}
+            step={50}
+            value={Math.min(Math.max(budget, r.min), r.max)}
+            onChange={(e) => onBudgetChange(Number(e.target.value))}
+            className="w-full"
+            style={{ "--thumb-color": color, "--track-fill": `${color}33` } as React.CSSProperties}
+          />
+          <div className="flex justify-between text-[10px] text-neutral-300 font-mono">
+            <span>${r.min.toLocaleString()}</span>
+            <span>${r.max.toLocaleString()}</span>
+          </div>
+        </div>
+      )
+    }
+
+    // range (e.g. income)
     return (
-      <div
-        draggable
-        onDragStart={(e) => { e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", factorKey); setTimeout(() => setDragging(factorKey), 0) }}
-        onDragEnd={() => { setDragging(null); setDragOverZone(null) }}
-        className={`flex items-center gap-2.5 px-3 py-2 bg-white border border-black/[0.07] cursor-grab active:cursor-grabbing select-none transition-opacity hover:border-black/20 ${
-          dragging === factorKey ? "opacity-30" : ""
-        }`}
-      >
-        {rank !== undefined && (
-          <span className="text-[10px] font-mono text-neutral-300 w-3 text-right flex-shrink-0">{rank}</span>
-        )}
-        <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
-        <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]} className="flex-1">
-          <span className="text-sm text-black">{factor.label}</span>
-        </FactorTooltip>
-        {showWeight && (
-          <span className="text-[11px] font-mono text-neutral-400 tabular-nums">
-            {Number.isFinite(weights[factorKey]) ? weights[factorKey] : 0}%
+      <div className="space-y-1">
+        <input
+          type="range"
+          min={spec.min}
+          max={spec.max}
+          step={spec.step}
+          value={goals[factorKey]}
+          onChange={(e) => setGoal(factorKey, Number(e.target.value))}
+          className="w-full"
+          style={{ "--thumb-color": color, "--track-fill": `${color}33` } as React.CSSProperties}
+        />
+        <div className="flex justify-between text-[10px] text-neutral-300 font-mono">
+          <span>{spec.unit ?? ""}{spec.min?.toLocaleString()}</span>
+          <span>{spec.unit ?? ""}{spec.max?.toLocaleString()}</span>
+        </div>
+      </div>
+    )
+  }
+
+  // A card in the right-hand "Selected factors" column. Collapsed by default: the
+  // header shows the current goal; expanding reveals the tier picker and scale.
+  function SelectedCard({ factorKey }: { factorKey: FactorKey }) {
+    const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
+    const spec = FACTOR_GOAL_SPECS[factorKey]
+    const currentTier = tierOf(tiers, factorKey)
+    const currentTierShort = TIER_OPTIONS.find((t) => t.key === currentTier)?.short ?? ""
+    const isExpanded = expanded.has(factorKey)
+    const goalSummary = formatGoal(factorKey, goals, { budget, unitType, weatherType })
+
+    return (
+      <div className="bg-white border border-black/[0.07] hover:border-black/20 transition-colors overflow-hidden">
+        {/* Header — click anywhere to expand/collapse */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => toggleExpand(factorKey)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleExpand(factorKey) } }}
+          className="flex items-center gap-1.5 px-3 py-2 cursor-pointer select-none min-w-0"
+        >
+          <ChevronDown
+            size={14}
+            className={`flex-shrink-0 text-neutral-400 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
+          />
+          <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
+          <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]} className="min-w-0 flex-1 overflow-hidden">
+            <span className="block text-sm text-black truncate">{factor.label}</span>
+          </FactorTooltip>
+          <span className="flex-shrink-0 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 border border-black/[0.12] text-neutral-500">
+            {currentTierShort}
           </span>
+          <span
+            className="flex-shrink-0 text-[11px] font-mono tabular-nums text-right"
+            style={{ color: factor.color }}
+            title={goalSummary}
+          >
+            {goalSummary}
+          </span>
+          <button
+            onClick={(e) => { e.stopPropagation(); removeFactor(factorKey) }}
+            title="Remove"
+            aria-label={`Remove ${factor.label}`}
+            className="flex-shrink-0 text-neutral-300 hover:text-black transition-colors text-sm leading-none px-1 cursor-pointer"
+          >
+            ×
+          </button>
+        </div>
+
+        {isExpanded && (
+          <div className="border-t border-black/[0.04]">
+            {/* Tier selector */}
+            <div className="px-3 pt-2 pb-2 grid grid-cols-3 gap-1">
+              {TIER_OPTIONS.map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => moveToTier(factorKey, t.key)}
+                  className={`text-[10px] px-1 py-1 border transition-colors leading-tight ${
+                    currentTier === t.key
+                      ? "bg-black text-white border-black"
+                      : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="px-3 pb-2.5 pt-1 border-t border-black/[0.04]">
+              <p className="text-[10px] text-neutral-400 mb-1.5 leading-snug">{spec.helper}</p>
+              <GoalControl factorKey={factorKey} />
+            </div>
+          </div>
         )}
       </div>
     )
@@ -216,146 +365,65 @@ export default function WeightSliders({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6">
+        <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Scoring</span>
+        <p className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
+          Preemptive goal programming — meet Must-Have targets first, then Nice-to-Have, then Bonus.
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Priorities</span>
-        <span className="text-xs text-neutral-400">drag to tier</span>
+        <span className="text-xs text-neutral-400">add &amp; set targets</span>
       </div>
 
-      {/* Unranked pool */}
-      <div className="mb-4">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">Available factors</span>
-          <span className="text-[10px] text-neutral-300">not included in ranking</span>
-        </div>
-        <div
-          onDragOver={(e) => onDragOver(e, "unranked")}
-          onDragLeave={onDragLeave}
-          onDrop={dropOnUnranked}
-          className={`min-h-[52px] p-2 flex flex-col gap-1 border transition-colors ${
-            dragOverZone === "unranked" ? "border-black/25 bg-neutral-50" : "border-black/[0.07]"
-          }`}
-        >
-          {unrankedFactors.length === 0 ? (
-            <div className="flex items-center justify-center h-8">
-              <span className="text-[10px] text-neutral-300 font-mono select-none">
-                {dragOverZone === "unranked" ? "release to unrank" : "all factors assigned"}
-              </span>
-            </div>
-          ) : (
-            unrankedFactors.map((f) => (
-              <FactorCard key={f.key} factorKey={f.key} showWeight={false} />
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Tier cards */}
-      <div className="flex flex-col gap-2">
-        {TIER_CONFIG.map(({ key, label, description }) => {
-          const factors = tiers[key]
-          const m = tiers.mustHave.length, n = tiers.niceToHave.length, b = tiers.bonus.length
-          const divisor = 3*m + 2*n + b
-          const perFactor = divisor > 0 ? (100 / divisor) * TIER_MULTIPLIERS[key] : 0
-          const effectiveWeight = Math.round(factors.length * perFactor)
-          const isOver = dragOverZone === key
-
-          return (
-            <div
-              key={key}
-              onDragOver={(e) => onDragOver(e, key)}
-              onDragLeave={onDragLeave}
-              onDrop={() => dropOnTier(key)}
-              className={`border transition-colors ${isOver ? "border-black/25 bg-neutral-50" : "border-black/[0.07]"}`}
-            >
-              <div className="flex items-center justify-between px-3 py-2 border-b border-black/[0.06]">
-                <div>
-                  <span className="text-[11px] font-semibold text-neutral-700 uppercase tracking-wider">{label}</span>
-                  <span className="ml-2 text-[10px] text-neutral-400">{description}</span>
-                </div>
-                <span className={`text-[11px] font-mono font-bold tabular-nums ${effectiveWeight > 0 ? "text-black" : "text-neutral-300"}`}>
-                  {effectiveWeight > 0 ? `${effectiveWeight}%` : "—"}
-                </span>
+      {/* Two-column picker: Available (left) → Selected (right).
+          Selected takes the remaining width since its cards hold the goal scales. */}
+      <div className="grid grid-cols-[minmax(120px,160px)_1fr] gap-3">
+        {/* Available factors */}
+        <div className="min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">Available</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            {unrankedFactors.length === 0 ? (
+              <div className="flex items-center justify-center min-h-[44px] border border-black/[0.07]">
+                <span className="text-[10px] text-neutral-300 font-mono select-none">all added</span>
               </div>
-              <div className="min-h-[44px] p-2 flex flex-col gap-1">
-                {factors.length === 0 ? (
-                  <div className="flex items-center justify-center h-8">
-                    <span className="text-[10px] text-neutral-300 font-mono select-none">
-                      {isOver ? "release to add" : "drop a factor here"}
-                    </span>
-                  </div>
-                ) : (
-                  factors.map((factorKey, idx) => (
-                    <FactorCard key={factorKey} factorKey={factorKey} showWeight={true} rank={idx + 1} />
-                  ))
-                )}
+            ) : (
+              unrankedFactors.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => addFactor(f.key)}
+                  className="group flex items-center gap-2 px-2.5 py-2 border border-black/[0.07] bg-white hover:border-black/25 transition-colors text-left cursor-pointer min-w-0"
+                >
+                  <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: f.color }} />
+                  <FactorTooltip text={FACTOR_DEFINITIONS[f.key]} className="flex-1 min-w-0 overflow-hidden">
+                    <span className="block text-[13px] text-black truncate">{f.label}</span>
+                  </FactorTooltip>
+                  <span className="flex-shrink-0 text-neutral-300 group-hover:text-black transition-colors text-sm leading-none">+</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Selected factors */}
+        <div className="min-w-0">
+          <div className="mb-1.5">
+            <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider">Selected</span>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {selectedFactors.length === 0 ? (
+              <div className="flex items-center justify-center min-h-[44px] border border-black/[0.07]">
+                <span className="text-[10px] text-neutral-300 font-mono select-none text-center px-2">add a factor from the left</span>
               </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Affordability settings */}
-      <div className="mt-6 pt-6 border-t border-black/[0.06] space-y-4">
-        <div>
-          <p className="text-[11px] text-neutral-400 mb-2">Unit type</p>
-          <div className="flex flex-wrap gap-1.5">
-            {UNIT_TYPES.map((ut) => (
-              <button
-                key={ut.value}
-                onClick={() => onUnitTypeChange(ut.value)}
-                className={`text-[11px] px-2.5 py-1 border transition-colors ${
-                  unitType === ut.value
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
-                }`}
-              >
-                {ut.label}
-              </button>
-            ))}
+            ) : (
+              selectedFactors.map((f) => (
+                <SelectedCard key={f.key} factorKey={f.key} />
+              ))
+            )}
           </div>
-        </div>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] text-neutral-400">Monthly budget</p>
-            <span className="text-[11px] font-mono font-semibold" style={{ color: "#10b981" }}>
-              ${budget.toLocaleString()}/mo
-            </span>
-          </div>
-          <input
-            type="range"
-            min={500}
-            max={5000}
-            step={100}
-            value={budget}
-            onChange={(e) => onBudgetChange(Number(e.target.value))}
-            className="w-full"
-            style={{ "--thumb-color": "#10b981", "--track-fill": "rgba(16,185,129,0.2)" } as React.CSSProperties}
-          />
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-neutral-300 font-mono">$500</span>
-            <span className="text-[10px] text-neutral-300 font-mono">$5,000</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Climate preference */}
-      <div className="mt-6 pt-6 border-t border-black/[0.06]">
-        <p className="text-[11px] text-neutral-400 mb-2">Climate preference</p>
-        <div className="flex flex-wrap gap-1.5">
-          {WEATHER_TYPES.map((wt) => (
-            <button
-              key={wt.value}
-              onClick={() => onWeatherTypeChange(wt.value)}
-              title={wt.hint}
-              className={`text-[11px] px-2.5 py-1 border transition-colors ${
-                weatherType === wt.value
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
-              }`}
-            >
-              {wt.label}
-            </button>
-          ))}
         </div>
       </div>
 

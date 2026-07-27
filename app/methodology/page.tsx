@@ -88,10 +88,13 @@ export default function MethodologyPage() {
             </p>
           </Step>
 
-          <Step n="02" title="Tiers → weights">
+          <Step n="02" title="Tiers → weights (or priorities)">
             <p>
               You assign each factor to one of three tiers by dragging it — or leave it unranked, in which
-              case it contributes nothing to the score. Each tier carries a fixed per-factor multiplier:
+              case it contributes nothing to the score. The tiers do double duty: they become factor
+              <span className="font-semibold text-black"> weights</span> in the weighted &amp; Archimedean
+              models, and strict <span className="font-semibold text-black">priority levels</span> in the
+              preemptive model (step 03). Each tier carries a fixed per-factor multiplier:
             </p>
             <Formula>
               Must Have = 3× &nbsp;&nbsp;·&nbsp;&nbsp; Nice to Have = 2× &nbsp;&nbsp;·&nbsp;&nbsp; Bonus = 1×
@@ -118,12 +121,107 @@ export default function MethodologyPage() {
             </p>
           </Step>
 
-          <Step n="03" title="Final score">
-            <p>The total score is the weighted sum of all 9 factor scores:</p>
-            <Formula>Total Score = Σ (factor score × factor weight)</Formula>
+          <Step n="03" title="Final score — pick a method">
             <p>
-              Rounded to the nearest integer, and cities are sorted descending. If no factors are assigned
-              to any tier, the ranking list stays empty rather than showing a meaningless default order.
+              The 0–100 factor scores and tiers feed into one of three interchangeable scoring methods,
+              selectable in the sidebar. All three share steps 01–02; they differ only in how they turn
+              factor scores into a ranking.
+            </p>
+
+            <div>
+              <span className="font-semibold text-black">A. Weighted score</span> — the classic compensatory
+              baseline. Total score is the weighted sum of all 9 factor scores:
+              <Formula>Total Score = Σ (factor score × factor weight)</Formula>
+              <p className="mt-2">
+                A great score on one factor can fully compensate for a poor score on another. Higher is better;
+                cities are sorted descending.
+              </p>
+            </div>
+
+            <div>
+              <span className="font-semibold text-black">B. Goal programming (weighted)</span> — instead of
+              maximizing a blend, you set a <em>target</em> for each ranked factor in its own real-world units —
+              e.g. &ldquo;rent ≤ $2,000/mo&rdquo;, &ldquo;Walker&apos;s paradise&rdquo;, &ldquo;unemployment ≤ 5%&rdquo;,
+              &ldquo;PM2.5 ≤ 8 μg/m³&rdquo;. Each raw target is mapped onto the same 0–100 scale as the factor
+              scores (step 01), so a city sitting exactly on your target lands on its <em>target score</em>. The
+              engine then minimizes how far each city falls <em>short</em> of that target:
+              <Formula>deviation(factor) = max(0, target score − factor score)</Formula>
+              <Formula>penalty = Σ (weight × deviation) &nbsp;·&nbsp; Goal Attainment = 100 − penalty</Formula>
+              <p className="mt-2">
+                This is <span className="font-semibold text-black">Archimedean</span> goal programming — tier
+                weights become penalties on missed goals. A city that meets every target scores 100. Setting goals
+                in real units (not an abstract 0–100) is what keeps the targets meaningful.
+              </p>
+            </div>
+
+            <div>
+              <span className="font-semibold text-black">C. Goal programming (preemptive)</span> — the same
+              targets and deviations, but tiers act as strict <span className="font-semibold text-black">priority
+              levels</span> instead of weights. Cities are compared by total Must&nbsp;Have deviation first;
+              only ties are broken by Nice&nbsp;to&nbsp;Have, then by Bonus:
+              <Formula>
+                minimize (Σ Must-Have dev) ≫ then (Σ Nice-to-Have dev) ≫ then (Σ Bonus dev)
+              </Formula>
+              <p className="mt-2">
+                This is <span className="font-semibold text-black">lexicographic</span> goal programming: a city
+                that misses a Must&nbsp;Have goal can never be rescued by excelling at a Bonus factor. It formalizes
+                the intent behind the three tiers — satisfy what matters most, first.
+              </p>
+            </div>
+
+            <p className="text-xs text-neutral-400 pt-1">
+              In all three methods, cities are sorted best-first and the displayed 0–100 number is the goal-attainment
+              (or weighted) score. If no factors are assigned to any tier, the ranking list stays empty rather than
+              showing a meaningless default order.
+            </p>
+          </Step>
+
+          <Step n="04" title="Shortlist — pick the best set of cities">
+            <p>
+              The first three methods rank cities <em>independently</em>: each city is scored on its own.
+              But relocation often isn&apos;t about one perfect city — you might be happy to visit or split time
+              across a small set, as long as that set <span className="font-semibold text-black">together</span>
+              covers everything you care about. The <span className="font-semibold text-black">Shortlist</span> method
+              solves exactly that: it selects the best set of <span className="font-semibold text-black">k</span> cities
+              (you choose k, up to 5).
+            </p>
+            <p>
+              The key idea is <span className="font-semibold text-black">best-in-set achievement</span>. For each
+              factor, a set is credited with the <em>best</em> score any city in it achieves — if one city in your
+              shortlist is a walker&apos;s paradise, the whole set clears the walkability goal. The set&apos;s shortfall
+              on factor i is therefore:
+            </p>
+            <Formula>eᵢ(S) = max(0, targetᵢ − max&nbsp;over&nbsp;c∈S&nbsp;of&nbsp;scoreᵢ(c))</Formula>
+            <p>
+              This is a <span className="font-semibold text-black">binary (0/1) goal program</span>. A decision
+              variable x꜀ ∈ {"{0,1}"} marks whether city c is in the shortlist, and set-level deviation variables
+              dᵢ⁻, dᵢ⁺ ≥ 0 measure how far the set falls short of / overshoots each target:
+            </p>
+            <Formula>
+              minimize (lexicographically)&nbsp; D₁ = Σ dᵢ⁻ over Must-Have&nbsp; ≫&nbsp; D₂ = Σ dᵢ⁻ over Nice-to-Have&nbsp; ≫&nbsp; D₃ = Σ dᵢ⁻ over Bonus
+              <br />
+              s.t.&nbsp; Sᵢ = max over chosen cities of scoreᵢ&nbsp;·&nbsp; Sᵢ + dᵢ⁻ − dᵢ⁺ = targetᵢ
+              <br />
+              &nbsp;&nbsp;&nbsp;&nbsp; Σ x꜀ = k&nbsp;·&nbsp; (optional) Σ x꜀ ≤ 1 per province&nbsp;·&nbsp; x꜀ ∈ {"{0,1}"}, dᵢ⁻, dᵢ⁺ ≥ 0
+            </Formula>
+            <p>
+              The objective is <span className="font-semibold text-black">preemptive by tier</span>, exactly like the
+              preemptive single-city model: minimize total Must-Have shortfall first, then Nice-to-Have, then Bonus.
+              Ties are broken by a weighted overall attainment, then deterministically by the cities&apos; names so the
+              output is stable. An optional <span className="font-semibold text-black">one city per province</span>
+              constraint keeps the shortlist geographically diverse.
+            </p>
+            <p>
+              Choosing the best subset of cities is a <span className="font-semibold text-black">covering-type,
+              NP-hard</span> problem — the number of candidate sets grows combinatorially. With k capped at 5 and 38
+              CMAs the space is small (well under a million combinations), so the app solves it
+              <span className="font-semibold text-black"> exactly by enumerating every feasible set</span>. A
+              <span className="font-semibold text-black"> greedy</span> heuristic (repeatedly add the city that most
+              improves the objective) is kept as a fallback for larger instances.
+            </p>
+            <p className="text-xs text-neutral-400 pt-1">
+              In the rankings, the k chosen cities are grouped under &ldquo;Your shortlist&rdquo; and highlighted;
+              every other city is listed below by its individual goal attainment.
             </p>
           </Step>
         </div>

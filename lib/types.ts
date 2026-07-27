@@ -60,4 +60,25 @@ export interface FactorScores {
 export interface ScoredCity extends City {
   factorScores: FactorScores
   totalScore: number
+  // Populated only by the goal-programming methods (undefined for the weighted model).
+  goalDeviations?: FactorScores
+  // Set only by the shortlist (binary goal program) method: true if the city is one of
+  // the k cities selected for the shortlist.
+  inShortlist?: boolean
 }
+
+// --- Priorities & goal programming ---
+
+export type TierKey = "mustHave" | "niceToHave" | "bonus"
+
+export type Tiers = Record<TierKey, (keyof Weights)[]>
+
+// Target factor score (0–100) the user aspires to reach for each factor.
+export type Goals = Record<keyof Weights, number>
+
+// "weighted"        → classic weighted additive model (maximize weighted score)
+// "goalWeighted"    → Archimedean goal programming (minimize weighted deviation from goals)
+// "goalPreemptive"  → lexicographic goal programming (satisfy tiers in strict priority order)
+// "goalShortlist"   → binary goal program: pick the best set of k cities that TOGETHER
+//                     cover the goals (best-in-set achievement, preemptive by tier)
+export type ScoringMethod = "weighted" | "goalWeighted" | "goalPreemptive" | "goalShortlist"
