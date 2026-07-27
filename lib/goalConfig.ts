@@ -13,7 +13,7 @@ export type GoalDirection = "atLeast" | "atMost"
 // How the user picks the goal in the sidebar.
 export type GoalControl = "discrete" | "range" | "budget" | "climate"
 
-export interface DiscreteOption { label: string; value: number }
+export interface DiscreteOption { label: string; short?: string; value: number }
 
 export interface FactorGoalSpec {
   direction: GoalDirection
@@ -70,10 +70,10 @@ export const FACTOR_GOAL_SPECS: Record<keyof Weights, FactorGoalSpec> = {
     control: "discrete",
     helper: "Minimum Walk Score band you want.",
     options: [
-      { label: "Car-dependent",     value: 25 },
-      { label: "Somewhat walkable", value: 50 },
-      { label: "Very walkable",     value: 70 },
-      { label: "Walker's paradise", value: 90 },
+      { label: "Car-dependent",     short: "Car-dep.",  value: 25 },
+      { label: "Somewhat walkable", short: "Somewhat",  value: 50 },
+      { label: "Very walkable",     short: "Very",      value: 70 },
+      { label: "Walker's paradise", short: "Paradise",  value: 90 },
     ],
   },
   affordability: {
@@ -86,9 +86,9 @@ export const FACTOR_GOAL_SPECS: Record<keyof Weights, FactorGoalSpec> = {
     control: "discrete",
     helper: "Crime Severity Index — national average is 100, lower is safer.",
     options: [
-      { label: "Very safe",   value: 60 },
-      { label: "Safe",        value: 80 },
-      { label: "Avg or below", value: 100 },
+      { label: "Very safe",    short: "V. safe", value: 60 },
+      { label: "Safe",         short: "Safe",    value: 80 },
+      { label: "Avg or below", short: "≤ Avg",   value: 100 },
     ],
   },
   weather: {
@@ -178,14 +178,14 @@ export function formatGoal(
   }
   if (spec.control === "climate") {
     const labels: Record<WeatherType, string> = {
-      warm: "Warm", mild: "Mild", four_seasons: "Four seasons", dry: "Dry",
+      warm: "Warm", mild: "Mild", four_seasons: "4 seas.", dry: "Dry",
     }
     return labels[ctx.weatherType]
   }
   if (spec.control === "range") {
     return `${arrow} ${spec.unit ?? ""}${goals[factor].toLocaleString()}`
   }
-  // discrete
+  // discrete — prefer short label for the cramped card header
   const opt = spec.options?.find((o) => o.value === goals[factor])
-  return opt ? opt.label : `${arrow} ${goals[factor]}`
+  return opt ? (opt.short ?? opt.label) : `${arrow} ${goals[factor]}`
 }

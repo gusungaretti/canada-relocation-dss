@@ -175,6 +175,55 @@ export default function MethodologyPage() {
               showing a meaningless default order.
             </p>
           </Step>
+
+          <Step n="04" title="Shortlist — pick the best set of cities">
+            <p>
+              The first three methods rank cities <em>independently</em>: each city is scored on its own.
+              But relocation often isn&apos;t about one perfect city — you might be happy to visit or split time
+              across a small set, as long as that set <span className="font-semibold text-black">together</span>
+              covers everything you care about. The <span className="font-semibold text-black">Shortlist</span> method
+              solves exactly that: it selects the best set of <span className="font-semibold text-black">k</span> cities
+              (you choose k, up to 5).
+            </p>
+            <p>
+              The key idea is <span className="font-semibold text-black">best-in-set achievement</span>. For each
+              factor, a set is credited with the <em>best</em> score any city in it achieves — if one city in your
+              shortlist is a walker&apos;s paradise, the whole set clears the walkability goal. The set&apos;s shortfall
+              on factor i is therefore:
+            </p>
+            <Formula>eᵢ(S) = max(0, targetᵢ − max&nbsp;over&nbsp;c∈S&nbsp;of&nbsp;scoreᵢ(c))</Formula>
+            <p>
+              This is a <span className="font-semibold text-black">binary (0/1) goal program</span>. A decision
+              variable x꜀ ∈ {"{0,1}"} marks whether city c is in the shortlist, and set-level deviation variables
+              dᵢ⁻, dᵢ⁺ ≥ 0 measure how far the set falls short of / overshoots each target:
+            </p>
+            <Formula>
+              minimize (lexicographically)&nbsp; D₁ = Σ dᵢ⁻ over Must-Have&nbsp; ≫&nbsp; D₂ = Σ dᵢ⁻ over Nice-to-Have&nbsp; ≫&nbsp; D₃ = Σ dᵢ⁻ over Bonus
+              <br />
+              s.t.&nbsp; Sᵢ = max over chosen cities of scoreᵢ&nbsp;·&nbsp; Sᵢ + dᵢ⁻ − dᵢ⁺ = targetᵢ
+              <br />
+              &nbsp;&nbsp;&nbsp;&nbsp; Σ x꜀ = k&nbsp;·&nbsp; (optional) Σ x꜀ ≤ 1 per province&nbsp;·&nbsp; x꜀ ∈ {"{0,1}"}, dᵢ⁻, dᵢ⁺ ≥ 0
+            </Formula>
+            <p>
+              The objective is <span className="font-semibold text-black">preemptive by tier</span>, exactly like the
+              preemptive single-city model: minimize total Must-Have shortfall first, then Nice-to-Have, then Bonus.
+              Ties are broken by a weighted overall attainment, then deterministically by the cities&apos; names so the
+              output is stable. An optional <span className="font-semibold text-black">one city per province</span>
+              constraint keeps the shortlist geographically diverse.
+            </p>
+            <p>
+              Choosing the best subset of cities is a <span className="font-semibold text-black">covering-type,
+              NP-hard</span> problem — the number of candidate sets grows combinatorially. With k capped at 5 and 38
+              CMAs the space is small (well under a million combinations), so the app solves it
+              <span className="font-semibold text-black"> exactly by enumerating every feasible set</span>. A
+              <span className="font-semibold text-black"> greedy</span> heuristic (repeatedly add the city that most
+              improves the objective) is kept as a fallback for larger instances.
+            </p>
+            <p className="text-xs text-neutral-400 pt-1">
+              In the rankings, the k chosen cities are grouped under &ldquo;Your shortlist&rdquo; and highlighted;
+              every other city is listed below by its individual goal attainment.
+            </p>
+          </Step>
         </div>
 
         <div className="mt-16 pt-10 border-t border-black/[0.06]">

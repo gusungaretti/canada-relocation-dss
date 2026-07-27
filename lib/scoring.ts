@@ -51,8 +51,8 @@ function weatherScore(city: City, allCities: City[], type: WeatherType): number 
 
 // Dataset min/max for every min–max-normalized metric. Shared by the factor-score
 // computation and by the goal→target-score mapping so both use identical bounds.
-type Stats = ReturnType<typeof getStats>
-function getStats(cities: City[]) {
+export type Stats = ReturnType<typeof getStats>
+export function getStats(cities: City[]) {
   const range = (vals: number[]) => ({ min: Math.min(...vals), max: Math.max(...vals) })
   return {
     walk:   range(cities.map((c) => c.walkScore)),
@@ -67,7 +67,7 @@ function getStats(cities: City[]) {
 
 // Normalize every raw metric into a comparable 0–100 factor score, where higher is
 // always better. This is shared by the weighted model and both goal-programming methods.
-function computeFactorScores(
+export function computeFactorScores(
   cities: City[],
   stats: Stats,
   weatherType: WeatherType,
@@ -129,7 +129,7 @@ function undershoot(factorScore: number, targetScore: number): number {
 // Map each raw-unit goal onto the same normalized 0–100 scale the cities are measured
 // on, using identical dataset bounds and normalization direction. A city that exactly
 // meets the raw goal lands right on its target score, so deviation math stays uniform.
-function goalTargetScores(stats: Stats, goals: Goals): FactorScores {
+export function goalTargetScores(stats: Stats, goals: Goals): FactorScores {
   return {
     walkability:   minMaxNormalize(goals.walkability, stats.walk.min, stats.walk.max),
     affordability: AFFORDABILITY_TARGET_SCORE,

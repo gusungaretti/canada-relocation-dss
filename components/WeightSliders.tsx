@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { ChevronDown } from "lucide-react"
-import type { Weights, WeatherType, UnitType, Tiers, Goals, ScoringMethod, TierKey } from "@/lib/types"
+import type { Weights, WeatherType, UnitType, Tiers, Goals, TierKey } from "@/lib/types"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
 import { computeWeights, EMPTY_TIERS, tierOf } from "@/lib/priorities"
 import { FACTOR_GOAL_SPECS, RENT_RANGE, DEFAULT_GOALS as CONFIG_DEFAULT_GOALS, formatGoal } from "@/lib/goalConfig"
@@ -14,12 +14,6 @@ const TIER_OPTIONS: { key: TierKey; label: string; short: string }[] = [
   { key: "mustHave",   label: "Must Have",    short: "Must" },
   { key: "niceToHave", label: "Nice to Have", short: "Nice" },
   { key: "bonus",      label: "Bonus",        short: "Bonus" },
-]
-
-const METHOD_OPTIONS: { value: ScoringMethod; label: string; hint: string }[] = [
-  { value: "weighted",       label: "Weighted",   hint: "Maximize the weighted sum of factor scores (compensatory baseline)." },
-  { value: "goalWeighted",   label: "Goal (wtd)", hint: "Goal programming: minimize the weighted shortfall from your per-factor targets." },
-  { value: "goalPreemptive", label: "Goal (pri)", hint: "Preemptive goal programming: meet Must-Have targets first, then Nice-to-Have, then Bonus." },
 ]
 
 const DEFAULT_GOALS: Goals = CONFIG_DEFAULT_GOALS
@@ -55,7 +49,6 @@ const DEFAULT_TIERS: Tiers = EMPTY_TIERS
 
 const TIERS_STORAGE_KEY = "mm_tiers"
 const GOALS_STORAGE_KEY = "mm_goals_v2"
-const METHOD_STORAGE_KEY = "mm_method"
 const ALL_FACTOR_KEYS = FACTOR_CONFIG.map((f) => f.key)
 
 function loadTiers(): Tiers | null {
@@ -98,19 +91,12 @@ function loadGoals(): Goals | null {
   }
 }
 
-function loadMethod(): ScoringMethod | null {
-  const raw = typeof localStorage !== "undefined" ? localStorage.getItem(METHOD_STORAGE_KEY) : null
-  return METHOD_OPTIONS.some((m) => m.value === raw) ? (raw as ScoringMethod) : null
-}
-
 interface Props {
   weights: Weights
   onChange: (weights: Weights) => void
   onTiersChange: (tiers: Tiers) => void
   goals: Goals
   onGoalsChange: (goals: Goals) => void
-  method: ScoringMethod
-  onMethodChange: (m: ScoringMethod) => void
   weatherType: WeatherType
   onWeatherTypeChange: (t: WeatherType) => void
   unitType: UnitType
@@ -122,7 +108,6 @@ interface Props {
 export default function WeightSliders({
   onChange, onTiersChange,
   goals, onGoalsChange,
-  method, onMethodChange,
   weatherType, onWeatherTypeChange,
   unitType, onUnitTypeChange,
   budget, onBudgetChange,
@@ -132,8 +117,6 @@ export default function WeightSliders({
   const skipNextSave = useRef(true)
   const skipNextGoalSave = useRef(true)
 
-  const isGoalMode = method !== "weighted"
-
   // Restore persisted state after mount (client-only — avoids SSR/hydration mismatch).
   // Restoring in an effect (rather than a lazy initializer) is intentional here.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -142,8 +125,6 @@ export default function WeightSliders({
     if (savedTiers) setTiers(savedTiers)
     const savedGoals = loadGoals()
     if (savedGoals) onGoalsChange(savedGoals)
-    const savedMethod = loadMethod()
-    if (savedMethod) onMethodChange(savedMethod)
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -165,10 +146,6 @@ export default function WeightSliders({
     }
   }, [goals])
 
-  useEffect(() => {
-    localStorage.setItem(METHOD_STORAGE_KEY, method)
-  }, [method])
-
   function setGoal(factor: FactorKey, value: number) {
     onGoalsChange({ ...goals, [factor]: value })
   }
@@ -176,7 +153,6 @@ export default function WeightSliders({
   const assignedKeys = new Set(Object.values(tiers).flat())
   const unrankedFactors = FACTOR_CONFIG.filter(f => !assignedKeys.has(f.key))
   const selectedFactors = FACTOR_CONFIG.filter(f => assignedKeys.has(f.key))
-  const weights = computeWeights(tiers)
 
   // Move a factor into `target`, removing it from any tier it currently sits in.
   function moveToTier(factor: FactorKey, target: TierKey) {
@@ -230,7 +206,7 @@ export default function WeightSliders({
   const pill = (selected: boolean) =>
     `${pillBase} ${selected ? "bg-black text-white border-black" : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"}`
 
-  // The real-unit goal input for a factor, shown only when it's selected in a goal mode.
+  // The real-unit goal input for a factor, shown only when it's selected.
   function GoalControl({ factorKey }: { factorKey: FactorKey }) {
     const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
     const spec = FACTOR_GOAL_SPECS[factorKey]
@@ -311,44 +287,43 @@ export default function WeightSliders({
   }
 
   // A card in the right-hand "Selected factors" column. Collapsed by default: the
-  // header shows the tier + current goal; expanding reveals the tier picker and scale.
+  // header shows the current goal; expanding reveals the tier picker and scale.
   function SelectedCard({ factorKey }: { factorKey: FactorKey }) {
     const factor = FACTOR_CONFIG.find(f => f.key === factorKey)!
     const spec = FACTOR_GOAL_SPECS[factorKey]
     const currentTier = tierOf(tiers, factorKey)
     const currentTierShort = TIER_OPTIONS.find((t) => t.key === currentTier)?.short ?? ""
     const isExpanded = expanded.has(factorKey)
+    const goalSummary = formatGoal(factorKey, goals, { budget, unitType, weatherType })
 
     return (
-      <div className="bg-white border border-black/[0.07] hover:border-black/20 transition-colors">
+      <div className="bg-white border border-black/[0.07] hover:border-black/20 transition-colors overflow-hidden">
         {/* Header — click anywhere to expand/collapse */}
         <div
           role="button"
           tabIndex={0}
           onClick={() => toggleExpand(factorKey)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleExpand(factorKey) } }}
-          className="flex items-center gap-2 px-3 py-2 cursor-pointer select-none"
+          className="flex items-center gap-1.5 px-3 py-2 cursor-pointer select-none min-w-0"
         >
           <ChevronDown
             size={14}
             className={`flex-shrink-0 text-neutral-400 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
           />
           <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: factor.color }} />
-          <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]} className="flex-1 min-w-0">
-            <span className="text-sm text-black">{factor.label}</span>
+          <FactorTooltip text={FACTOR_DEFINITIONS[factorKey]} className="min-w-0 flex-1 overflow-hidden">
+            <span className="block text-sm text-black truncate">{factor.label}</span>
           </FactorTooltip>
           <span className="flex-shrink-0 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 border border-black/[0.12] text-neutral-500">
             {currentTierShort}
           </span>
-          {isGoalMode ? (
-            <span className="text-[11px] font-mono tabular-nums text-right" style={{ color: factor.color }}>
-              {formatGoal(factorKey, goals, { budget, unitType, weatherType })}
-            </span>
-          ) : (
-            <span className="text-[11px] font-mono text-neutral-400 tabular-nums">
-              {Number.isFinite(weights[factorKey]) ? weights[factorKey] : 0}%
-            </span>
-          )}
+          <span
+            className="flex-shrink-0 text-[11px] font-mono tabular-nums text-right"
+            style={{ color: factor.color }}
+            title={goalSummary}
+          >
+            {goalSummary}
+          </span>
           <button
             onClick={(e) => { e.stopPropagation(); removeFactor(factorKey) }}
             title="Remove"
@@ -378,12 +353,10 @@ export default function WeightSliders({
               ))}
             </div>
 
-            {isGoalMode && (
-              <div className="px-3 pb-2.5 pt-1 border-t border-black/[0.04]">
-                <p className="text-[10px] text-neutral-400 mb-1.5 leading-snug">{spec.helper}</p>
-                <GoalControl factorKey={factorKey} />
-              </div>
-            )}
+            <div className="px-3 pb-2.5 pt-1 border-t border-black/[0.04]">
+              <p className="text-[10px] text-neutral-400 mb-1.5 leading-snug">{spec.helper}</p>
+              <GoalControl factorKey={factorKey} />
+            </div>
           </div>
         )}
       </div>
@@ -392,33 +365,16 @@ export default function WeightSliders({
 
   return (
     <div className="flex flex-col">
-      {/* Scoring method */}
       <div className="mb-6">
-        <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Scoring method</span>
-        <div className="mt-2 grid grid-cols-3 gap-1">
-          {METHOD_OPTIONS.map((m) => (
-            <button
-              key={m.value}
-              onClick={() => onMethodChange(m.value)}
-              title={m.hint}
-              className={`text-[11px] px-2 py-1.5 border transition-colors ${
-                method === m.value
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-        <p className="mt-2 text-[10px] text-neutral-400 leading-relaxed">
-          {METHOD_OPTIONS.find((m) => m.value === method)?.hint}
+        <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Scoring</span>
+        <p className="mt-2 text-[11px] text-neutral-500 leading-relaxed">
+          Preemptive goal programming — meet Must-Have targets first, then Nice-to-Have, then Bonus.
         </p>
       </div>
 
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Priorities</span>
-        <span className="text-xs text-neutral-400">{isGoalMode ? "add & set targets" : "add to rank"}</span>
+        <span className="text-xs text-neutral-400">add &amp; set targets</span>
       </div>
 
       {/* Two-column picker: Available (left) → Selected (right).
@@ -439,11 +395,11 @@ export default function WeightSliders({
                 <button
                   key={f.key}
                   onClick={() => addFactor(f.key)}
-                  className="group flex items-center gap-2 px-2.5 py-2 border border-black/[0.07] bg-white hover:border-black/25 transition-colors text-left cursor-pointer"
+                  className="group flex items-center gap-2 px-2.5 py-2 border border-black/[0.07] bg-white hover:border-black/25 transition-colors text-left cursor-pointer min-w-0"
                 >
                   <div className="w-2 h-2 flex-shrink-0" style={{ backgroundColor: f.color }} />
-                  <FactorTooltip text={FACTOR_DEFINITIONS[f.key]} className="flex-1 min-w-0">
-                    <span className="text-[13px] text-black truncate">{f.label}</span>
+                  <FactorTooltip text={FACTOR_DEFINITIONS[f.key]} className="flex-1 min-w-0 overflow-hidden">
+                    <span className="block text-[13px] text-black truncate">{f.label}</span>
                   </FactorTooltip>
                   <span className="flex-shrink-0 text-neutral-300 group-hover:text-black transition-colors text-sm leading-none">+</span>
                 </button>
@@ -470,77 +426,6 @@ export default function WeightSliders({
           </div>
         </div>
       </div>
-
-      {/* Global affordability & climate settings — only for the weighted model.
-          In goal modes these live inside the selected-factor cards instead. */}
-      {!isGoalMode && (
-      <>
-      {/* Affordability settings */}
-      <div className="mt-6 pt-6 border-t border-black/[0.06] space-y-4">
-        <div>
-          <p className="text-[11px] text-neutral-400 mb-2">Unit type</p>
-          <div className="flex flex-wrap gap-1.5">
-            {UNIT_TYPES.map((ut) => (
-              <button
-                key={ut.value}
-                onClick={() => onUnitTypeChange(ut.value)}
-                className={`text-[11px] px-2.5 py-1 border transition-colors ${
-                  unitType === ut.value
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
-                }`}
-              >
-                {ut.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] text-neutral-400">Monthly budget</p>
-            <span className="text-[11px] font-mono font-semibold" style={{ color: "#10b981" }}>
-              ${budget.toLocaleString()}/mo
-            </span>
-          </div>
-          <input
-            type="range"
-            min={500}
-            max={5000}
-            step={100}
-            value={budget}
-            onChange={(e) => onBudgetChange(Number(e.target.value))}
-            className="w-full"
-            style={{ "--thumb-color": "#10b981", "--track-fill": "rgba(16,185,129,0.2)" } as React.CSSProperties}
-          />
-          <div className="flex justify-between mt-1">
-            <span className="text-[10px] text-neutral-300 font-mono">$500</span>
-            <span className="text-[10px] text-neutral-300 font-mono">$5,000</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Climate preference */}
-      <div className="mt-6 pt-6 border-t border-black/[0.06]">
-        <p className="text-[11px] text-neutral-400 mb-2">Climate preference</p>
-        <div className="flex flex-wrap gap-1.5">
-          {WEATHER_TYPES.map((wt) => (
-            <button
-              key={wt.value}
-              onClick={() => onWeatherTypeChange(wt.value)}
-              title={wt.hint}
-              className={`text-[11px] px-2.5 py-1 border transition-colors ${
-                weatherType === wt.value
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-neutral-500 border-black/[0.12] hover:border-black/30 hover:text-black"
-              }`}
-            >
-              {wt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      </>
-      )}
 
       {/* Reset */}
       <button

@@ -8,7 +8,7 @@ interface Props {
 
 export default function FactorTooltip({ text, children, className }: Props) {
   return (
-    <span className={`relative group/tip inline-flex items-center cursor-help ${className ?? ""}`}>
+    <span className={`relative group/tip inline-flex min-w-0 max-w-full items-center cursor-help ${className ?? ""}`}>
       {children}
       <span
         role="tooltip"

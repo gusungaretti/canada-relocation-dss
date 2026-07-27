@@ -8,10 +8,10 @@ import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
 import { setHasActiveFactors } from "@/components/ScoreText"
-import { scoreCities, scoreCitiesByGoal } from "@/lib/scoring"
+import { scoreCitiesByGoal } from "@/lib/scoring"
 import { EMPTY_TIERS } from "@/lib/priorities"
 import { DEFAULT_GOALS } from "@/lib/goalConfig"
-import type { Weights, WeatherType, UnitType, Tiers, Goals, ScoringMethod } from "@/lib/types"
+import type { Weights, WeatherType, UnitType, Tiers, Goals, City } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
 
 const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
@@ -35,7 +35,6 @@ const DEFAULT_WEIGHTS: Weights = {
   education: 0,
 }
 
-
 const WEATHER_VALUES: WeatherType[] = ["warm", "mild", "four_seasons", "dry"]
 const UNIT_VALUES: UnitType[] = ["studio", "one_bed", "two_bed", "three_bed"]
 
@@ -48,7 +47,7 @@ function usePersisted<T>(key: string, value: T, isValid: (v: unknown) => v is T,
     } else {
       localStorage.setItem(key, JSON.stringify(value))
     }
-  }, [key, value]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key, value])
 
   useEffect(() => {
     try {
@@ -66,7 +65,6 @@ export default function ExplorePage() {
   const [weights, setWeights] = useState<Weights>(DEFAULT_WEIGHTS)
   const [tiers, setTiers] = useState<Tiers>(EMPTY_TIERS)
   const [goals, setGoals] = useState<Goals>(DEFAULT_GOALS)
-  const [method, setMethod] = useState<ScoringMethod>("goalWeighted")
   const [weatherType, setWeatherType] = useState<WeatherType>("four_seasons")
   const [unitType, setUnitType] = useState<UnitType>("one_bed")
   const [budget, setBudget] = useState(2000)
@@ -98,13 +96,16 @@ export default function ExplorePage() {
   }
 
   const rankedCities = useMemo(
-    () => {
-      const cities = citiesRaw as Parameters<typeof scoreCities>[0]
-      return method === "weighted"
-        ? scoreCities(cities, weights, weatherType, unitType, budget)
-        : scoreCitiesByGoal(cities, tiers, goals, method, weatherType, unitType, budget)
-    },
-    [method, weights, tiers, goals, weatherType, unitType, budget]
+    () => scoreCitiesByGoal(
+      citiesRaw as City[],
+      tiers,
+      goals,
+      "goalPreemptive",
+      weatherType,
+      unitType,
+      budget
+    ),
+    [tiers, goals, weatherType, unitType, budget]
   )
 
   const hasActiveFactors = useMemo(
@@ -148,11 +149,7 @@ export default function ExplorePage() {
             How scoring works
           </Link>
           <span className="text-xs text-neutral-400 hidden sm:block font-mono">
-            {rankedCities.length} CMAs · {
-              method === "weighted" ? "weighted score"
-              : method === "goalWeighted" ? "goal programming (weighted)"
-              : "goal programming (preemptive)"
-            }
+            {rankedCities.length} CMAs · preemptive goal programming
           </span>
           <button
             onClick={() => setShowSliders(!showSliders)}
@@ -178,8 +175,6 @@ export default function ExplorePage() {
               onTiersChange={setTiers}
               goals={goals}
               onGoalsChange={setGoals}
-              method={method}
-              onMethodChange={setMethod}
               weatherType={weatherType}
               onWeatherTypeChange={setWeatherType}
               unitType={unitType}
