@@ -328,6 +328,7 @@ export default function ExplorePage() {
             </div>
             <CityRankingList
               cities={rankedCities}
+              tiers={tiers}
               selectedSlug={hoveredSlug ?? undefined}
               onHover={setHoveredSlug}
               unitType={unitType}
