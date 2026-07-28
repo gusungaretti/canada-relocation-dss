@@ -38,6 +38,32 @@ const DEFAULT_WEIGHTS: Weights = {
 const WEATHER_VALUES: WeatherType[] = ["warm", "mild", "four_seasons", "dry"]
 const UNIT_VALUES: UnitType[] = ["studio", "one_bed", "two_bed", "three_bed"]
 
+const SIDEBAR_MIN = 280
+const SIDEBAR_MAX = 720
+const SIDEBAR_DEFAULT = 400
+const RANKINGS_MIN = 140
+const RANKINGS_MAX = 640
+const RANKINGS_DEFAULT = 256
+
+function ResizeHandle({ direction, onDragStart }: { direction: "col" | "row"; onDragStart: (e: React.MouseEvent) => void }) {
+  return (
+    <div
+      onMouseDown={onDragStart}
+      className={`hidden sm:flex flex-shrink-0 items-center justify-center group ${
+        direction === "col"
+          ? "w-1.5 cursor-col-resize hover:bg-black/[0.06]"
+          : "h-1.5 cursor-row-resize hover:bg-black/[0.06]"
+      } transition-colors`}
+    >
+      <div
+        className={`bg-black/10 group-hover:bg-black/30 transition-colors ${
+          direction === "col" ? "w-px h-8" : "h-px w-8"
+        }`}
+      />
+    </div>
+  )
+}
+
 function usePersisted<T>(key: string, value: T, isValid: (v: unknown) => v is T, setValue: (v: T) => void) {
   const skipNextSave = useRef(true)
 
@@ -72,6 +98,60 @@ export default function ExplorePage() {
   const [showSliders, setShowSliders] = useState(false)
   const [compareSet, setCompareSet] = useState<string[]>([])
   const [showComparison, setShowComparison] = useState(false)
+  const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT)
+  const [rankingsHeight, setRankingsHeight] = useState(RANKINGS_DEFAULT)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 640px)")
+    const update = () => setIsDesktop(mq.matches)
+    update()
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
+  }, [])
+
+  usePersisted<number>(
+    "mm_sidebarWidth", sidebarWidth,
+    (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= SIDEBAR_MIN && v <= SIDEBAR_MAX,
+    setSidebarWidth
+  )
+  usePersisted<number>(
+    "mm_rankingsHeight", rankingsHeight,
+    (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= RANKINGS_MIN && v <= RANKINGS_MAX,
+    setRankingsHeight
+  )
+
+  function startSidebarResize(e: React.MouseEvent) {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth = sidebarWidth
+    function onMove(ev: MouseEvent) {
+      const next = startWidth + (ev.clientX - startX)
+      setSidebarWidth(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, next)))
+    }
+    function onUp() {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+    }
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+  }
+
+  function startRankingsResize(e: React.MouseEvent) {
+    e.preventDefault()
+    const startY = e.clientY
+    const startHeight = rankingsHeight
+    function onMove(ev: MouseEvent) {
+      const next = startHeight + (startY - ev.clientY)
+      setRankingsHeight(Math.min(RANKINGS_MAX, Math.max(RANKINGS_MIN, next)))
+    }
+    function onUp() {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+    }
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+  }
 
   usePersisted<WeatherType>(
     "mm_weatherType", weatherType,
@@ -164,9 +244,10 @@ export default function ExplorePage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left sidebar */}
         <aside
+          style={isDesktop ? { width: sidebarWidth } : undefined}
           className={`${
             showSliders ? "flex" : "hidden"
-          } sm:flex flex-col w-full sm:w-96 lg:w-[32rem] flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
+          } sm:flex flex-col w-full flex-shrink-0 border-r border-black/[0.06] bg-white overflow-y-auto absolute sm:relative z-20 sm:z-auto inset-0 top-14`}
         >
           <div className="p-6 pt-8">
             <WeightSliders
@@ -185,6 +266,8 @@ export default function ExplorePage() {
           </div>
         </aside>
 
+        <ResizeHandle direction="col" onDragStart={startSidebarResize} />
+
         {/* Map */}
         <main className="flex-1 flex flex-col overflow-hidden">
           <div className="flex-1 relative min-h-0 bg-neutral-50">
@@ -197,7 +280,11 @@ export default function ExplorePage() {
           </div>
 
           {/* Rankings */}
-          <div className="flex-shrink-0 h-64 border-t border-black/[0.06] bg-white overflow-y-auto">
+          <ResizeHandle direction="row" onDragStart={startRankingsResize} />
+          <div
+            style={isDesktop ? { height: rankingsHeight } : undefined}
+            className="flex-shrink-0 h-64 border-t border-black/[0.06] bg-white overflow-y-auto"
+          >
             <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] sticky top-0 bg-white z-10">
               <span className="text-xs font-mono text-neutral-400 uppercase tracking-widest">Rankings</span>
               <div className="flex items-center gap-3">
