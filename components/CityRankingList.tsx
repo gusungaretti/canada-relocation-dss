@@ -18,8 +18,10 @@ function getRent(city: ScoredCity, unitType: UnitType): number {
   }
 }
 
+type RankedCity = ScoredCity & { parentName?: string }
+
 interface Props {
-  cities: ScoredCity[]
+  cities: RankedCity[]
   selectedSlug?: string
   onHover?: (slug: string | null) => void
   unitType: UnitType
@@ -44,7 +46,7 @@ export default function CityRankingList({ cities, selectedSlug, onHover, unitTyp
   // carries the flag (the other three methods) the rendering is a plain flat list.
   const hasShortlist = cities.some((c) => c.inShortlist)
 
-  function renderRow(city: ScoredCity, i: number) {
+  function renderRow(city: RankedCity, i: number) {
     const isSelected = city.slug === selectedSlug
     const isComparing = compareSet.includes(city.slug)
     const color = scoreHex(city.totalScore)
@@ -81,6 +83,11 @@ export default function CityRankingList({ cities, selectedSlug, onHover, unitTyp
                 <span className="text-[11px] text-neutral-400 font-mono flex-shrink-0">
                   {city.province}
                 </span>
+                {city.parentName && (
+                  <span className="text-[11px] text-neutral-300 flex-shrink-0 truncate">
+                    · suburb of {city.parentName}
+                  </span>
+                )}
                 {inShortlist && (
                   <span className="flex-shrink-0 text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 border border-emerald-600/40 text-emerald-700">
                     Shortlist

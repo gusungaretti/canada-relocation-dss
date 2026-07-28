@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
-import { SlidersHorizontal, Search } from "lucide-react"
+import { SlidersHorizontal, Search, MapPinned } from "lucide-react"
 import WeightSliders from "@/components/WeightSliders"
 import CityRankingList from "@/components/CityRankingList"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
@@ -13,6 +13,12 @@ import { EMPTY_TIERS } from "@/lib/priorities"
 import { DEFAULT_GOALS } from "@/lib/goalConfig"
 import type { Weights, WeatherType, UnitType, Tiers, Goals, City } from "@/lib/types"
 import citiesRaw from "@/data/cities.json"
+import suburbsRaw from "@/data/suburbs.json"
+
+const cities = citiesRaw as City[]
+const suburbs = suburbsRaw as City[]
+const allPlaces = [...cities, ...suburbs]
+const parentNameBySlug = new Map(cities.map((c) => [c.slug, c.name.split("–")[0].trim()]))
 
 const CanadaMap = dynamic(() => import("@/components/CanadaMap"), {
   ssr: false,
@@ -101,6 +107,7 @@ export default function ExplorePage() {
   const [sidebarWidth, setSidebarWidth] = useState(SIDEBAR_DEFAULT)
   const [rankingsHeight, setRankingsHeight] = useState(RANKINGS_DEFAULT)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [includeSuburbs, setIncludeSuburbs] = useState(true)
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 640px)")
@@ -119,6 +126,11 @@ export default function ExplorePage() {
     "mm_rankingsHeight", rankingsHeight,
     (v): v is number => typeof v === "number" && Number.isFinite(v) && v >= RANKINGS_MIN && v <= RANKINGS_MAX,
     setRankingsHeight
+  )
+  usePersisted<boolean>(
+    "mm_includeSuburbs", includeSuburbs,
+    (v): v is boolean => typeof v === "boolean",
+    setIncludeSuburbs
   )
 
   function startSidebarResize(e: React.MouseEvent) {
@@ -177,15 +189,18 @@ export default function ExplorePage() {
 
   const rankedCities = useMemo(
     () => scoreCitiesByGoal(
-      citiesRaw as City[],
+      includeSuburbs ? allPlaces : cities,
       tiers,
       goals,
       "goalPreemptive",
       weatherType,
       unitType,
       budget
-    ),
-    [tiers, goals, weatherType, unitType, budget]
+    ).map((c) => ({
+      ...c,
+      parentName: c.parentSlug ? parentNameBySlug.get(c.parentSlug) : undefined,
+    })),
+    [tiers, goals, weatherType, unitType, budget, includeSuburbs]
   )
 
   const hasActiveFactors = useMemo(
@@ -215,6 +230,18 @@ export default function ExplorePage() {
         <div className="h-4 w-px bg-black/10" />
         <span className="text-sm text-neutral-400">Explore Canadian Cities</span>
         <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={() => setIncludeSuburbs((v) => !v)}
+            title={includeSuburbs ? "Hide suburbs from the map and rankings" : "Show suburbs alongside cities"}
+            className={`flex items-center gap-1.5 text-xs px-2.5 py-1 border transition-colors ${
+              includeSuburbs
+                ? "border-black bg-black text-white"
+                : "border-black/[0.12] text-neutral-400 hover:border-black/30 hover:text-black"
+            }`}
+          >
+            <MapPinned size={12} />
+            <span className="hidden sm:inline">Suburbs</span>
+          </button>
           <Link
             href="/search"
             className="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-black transition-colors"
@@ -229,7 +256,7 @@ export default function ExplorePage() {
             How scoring works
           </Link>
           <span className="text-xs text-neutral-400 hidden sm:block font-mono">
-            {rankedCities.length} CMAs · preemptive goal programming
+            {rankedCities.length} {includeSuburbs ? "cities & suburbs" : "CMAs"} · preemptive goal programming
           </span>
           <button
             onClick={() => setShowSliders(!showSliders)}
