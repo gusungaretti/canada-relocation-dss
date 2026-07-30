@@ -218,7 +218,7 @@ export default function ExplorePage() {
         <CityComparisonPanel
           cities={rankedCities}
           compareSet={compareSet}
-          weights={weights}
+          tiers={tiers}
           onClose={() => setShowComparison(false)}
         />
       )}

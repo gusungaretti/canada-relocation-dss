@@ -1,8 +1,9 @@
 "use client"
 
 import { X } from "lucide-react"
-import type { ScoredCity, Weights } from "@/lib/types"
+import type { ScoredCity, Weights, Tiers, TierKey } from "@/lib/types"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
+import { tierOf } from "@/lib/priorities"
 import FactorTooltip from "@/components/FactorTooltip"
 
 const FACTOR_META: { key: keyof Weights; label: string; color: string }[] = [
@@ -17,19 +18,25 @@ const FACTOR_META: { key: keyof Weights; label: string; color: string }[] = [
   { key: "education",     label: "Education",      color: "#f59e0b" },
 ]
 
+const TIER_LABEL: Record<TierKey, string> = {
+  mustHave: "Must Have",
+  niceToHave: "Nice to Have",
+  bonus: "Bonus",
+}
+
 interface Props {
   cities: ScoredCity[]
   compareSet: string[]
-  weights: Weights
+  tiers: Tiers
   onClose: () => void
 }
 
-export default function CityComparisonPanel({ cities, compareSet, weights, onClose }: Props) {
+export default function CityComparisonPanel({ cities, compareSet, tiers, onClose }: Props) {
   const selected = compareSet
     .map(slug => cities.find(c => c.slug === slug))
     .filter((c): c is ScoredCity => !!c)
 
-  const hasActiveFactors = Object.values(weights).some(w => w > 0)
+  const hasActiveFactors = Object.values(tiers).some(list => list.length > 0)
 
   function scoreColor(score: number) {
     const t = Math.max(0, Math.min(100, score)) / 100
@@ -92,9 +99,10 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
               const best = Math.max(...scores)
               const worst = Math.min(...scores)
               const spread = best - worst
-              const isWeighted = weights[key] > 0
+              const tier = tierOf(tiers, key)
+              const isRanked = tier !== null
 
-              const dotColor = isWeighted ? color : "#d1d5db"
+              const dotColor = isRanked ? color : "#d1d5db"
 
               return (
                 <tr key={key} className="border-b border-black/[0.04] hover:bg-neutral-50/60 transition-colors">
@@ -102,17 +110,17 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                     <div className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 flex-shrink-0" style={{ backgroundColor: dotColor }} />
                       <FactorTooltip text={FACTOR_DEFINITIONS[key]}>
-                        <span className={`text-sm ${isWeighted ? "text-neutral-600" : "text-neutral-300"}`}>{label}</span>
+                        <span className={`text-sm ${isRanked ? "text-neutral-600" : "text-neutral-300"}`}>{label}</span>
                       </FactorTooltip>
                     </div>
                     <div className="text-[10px] text-neutral-300 font-mono mt-0.5 pl-3.5">
-                      {isWeighted ? `${weights[key]}% weight` : "not ranked"}
+                      {tier ? TIER_LABEL[tier] : "not ranked"}
                     </div>
                   </td>
                   {selected.map(city => {
                     const score = city.factorScores[key]
                     const isBest = score === best
-                    const highlight = isWeighted && isBest
+                    const highlight = isRanked && isBest
                     return (
                       <td key={city.slug} className="px-6 py-3 text-center">
                         <div className={`text-lg font-mono font-bold ${highlight ? "" : "text-neutral-300"}`}
@@ -130,7 +138,7 @@ export default function CityComparisonPanel({ cities, compareSet, weights, onClo
                   })}
                   <td className="px-6 py-3 text-center border-l border-black/[0.04]">
                     <div className={`inline-flex items-baseline gap-1 font-mono font-semibold text-sm tabular-nums ${
-                      isWeighted && spread > 0 ? "text-black" : "text-neutral-300"
+                      isRanked && spread > 0 ? "text-black" : "text-neutral-300"
                     }`}>
                       <span className="inline-block w-3 text-right">{spread > 0 ? "Δ" : ""}</span>
                       <span className="inline-block w-6 text-left">{spread > 0 ? spread : "—"}</span>

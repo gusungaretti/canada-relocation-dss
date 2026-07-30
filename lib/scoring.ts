@@ -150,8 +150,8 @@ export function goalTargetScores(stats: Stats, goals: Goals): FactorScores {
 //   goalPreemptive (lexicographic): minimize Must-Have deviations first; only break
 //                  ties with Nice-to-Have, then Bonus.
 //
-// `totalScore` is reported as a 0–100 goal-attainment score (100 = every goal met),
-// so the rest of the UI can render it exactly like the weighted model's score.
+// `totalScore` is a 0–100 display number. For preemptive GP it is built from the
+// tier shortfall vector so that a better lex rank cannot show a worse score.
 export function scoreCitiesByGoal(
   cities: City[],
   tiers: Tiers,
@@ -165,6 +165,7 @@ export function scoreCitiesByGoal(
   const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
   const stats = getStats(cities)
   const targets = goalTargetScores(stats, goals)
+  const tierCounts = TIER_ORDER.map((t) => tiers[t].length)
 
   const scored = computeFactorScores(cities, stats, weatherType, unitType, budget).map(({ city, factorScores }) => {
     const goalDeviations = { ...factorScores } as FactorScores
@@ -172,16 +173,34 @@ export function scoreCitiesByGoal(
       goalDeviations[key] = tierOf(tiers, key) ? undershoot(factorScores[key], targets[key]) : 0
     }
 
-    // Weighted (Archimedean) penalty → 0–100 goal-attainment score.
-    const weightedDeviation = totalWeight === 0
-      ? 0
-      : FACTOR_KEYS.reduce((sum, key) => sum + (weights[key] / totalWeight) * goalDeviations[key], 0)
-    const totalScore = Math.round(Math.max(0, 100 - weightedDeviation))
-
     // Per-tier total deviation, used as the lexicographic sort key for preemptive GP.
     const tierDeviation = TIER_ORDER.map((t) =>
       tiers[t].reduce((sum, key) => sum + goalDeviations[key], 0)
     )
+
+    // Display score: method-specific so the number matches how cities are ranked.
+    let totalScore: number
+    if (method === "goalPreemptive") {
+      // Lexicographic-compatible 0–100 score: encode tier attainments in base 101 so
+      // any Must-Have improvement beats every possible Nice/Bonus combination.
+      // (The previous 100 - a1 - a2/100 form was NOT lex-safe — a large Nice miss
+      // could make a perfect-Must city score below a slight Must miss.)
+      const avg = (D: number, n: number) => (n === 0 ? 0 : Math.min(100, D / n))
+      const u = (D: number, n: number) => (n === 0 ? 1 : 1 - avg(D, n) / 100) // attainment in [0,1]
+      const u1 = u(tierDeviation[0], tierCounts[0])
+      const u2 = u(tierDeviation[1], tierCounts[1])
+      const u3 = u(tierDeviation[2], tierCounts[2])
+      const BASE = 101
+      const raw = u1 * BASE * BASE + u2 * BASE + u3
+      const max = BASE * BASE + BASE + 1 // all tiers perfect
+      totalScore = Math.round((raw / max) * 100)
+    } else {
+      // Archimedean attainment (weighted GP / shortlist fallback display).
+      const weightedDeviation = totalWeight === 0
+        ? 0
+        : FACTOR_KEYS.reduce((sum, key) => sum + (weights[key] / totalWeight) * goalDeviations[key], 0)
+      totalScore = Math.round(Math.max(0, 100 - weightedDeviation))
+    }
 
     const scoredCity: ScoredCity = { ...city, factorScores, goalDeviations, totalScore }
     return { scoredCity, tierDeviation }

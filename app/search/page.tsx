@@ -8,7 +8,7 @@ import CitySearchResults from "@/components/CitySearchResults"
 import CityComparisonPanel from "@/components/CityComparisonPanel"
 import citiesRaw from "@/data/cities.json"
 import suburbsRaw from "@/data/suburbs.json"
-import type { City, Weights } from "@/lib/types"
+import type { City, Weights, Tiers } from "@/lib/types"
 
 const cities = citiesRaw as City[]
 const suburbs = suburbsRaw as City[]
@@ -16,6 +16,12 @@ const suburbs = suburbsRaw as City[]
 const EQUAL_WEIGHTS: Weights = {
   walkability: 11, affordability: 11, safety: 11, weather: 11,
   income: 11, transit: 11, employment: 11, airQuality: 12, education: 11,
+}
+
+const EMPTY_TIERS: Tiers = {
+  mustHave: [],
+  niceToHave: [],
+  bonus: [],
 }
 
 function normalize(s: string) {
@@ -67,7 +73,7 @@ export default function SearchPage() {
         <CityComparisonPanel
           cities={scoredAll}
           compareSet={compareSet}
-          weights={EQUAL_WEIGHTS}
+          tiers={EMPTY_TIERS}
           onClose={() => setShowComparison(false)}
         />
       )}
