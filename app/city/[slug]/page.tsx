@@ -5,6 +5,7 @@ import { scoreCities } from "@/lib/scoring"
 import SubredditWordCloud from "@/components/SubredditWordCloud"
 import FactorTooltip from "@/components/FactorTooltip"
 import ScoreText from "@/components/ScoreText"
+import CityHero from "@/components/CityHero"
 import { FACTOR_DEFINITIONS } from "@/lib/factorDefinitions"
 import citiesRaw from "@/data/cities.json"
 import suburbsRaw from "@/data/suburbs.json"
@@ -73,7 +74,6 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
     if (children.length > 0) childSuburbs = scoreCities(children, EQUAL_WEIGHTS)
   }
 
-  const totalColor = scoreColor(city.totalScore)
   const inheritedSet = new Set(city.inheritedFields ?? [])
 
   return (
@@ -97,39 +97,18 @@ export default async function CityDetailPage({ params }: { params: Promise<{ slu
 
       <main className="max-w-3xl mx-auto px-6 py-16">
         {/* Hero */}
-        <div className="flex items-start justify-between mb-14">
-          <div>
-            <div className="flex items-center gap-2 mb-4 text-xs font-mono text-neutral-400">
-              <span>#{rank} of {poolSize}</span>
-              <span>·</span>
-              <span>{city.province}</span>
-              {!isSuburb && (
-                <>
-                  <span>·</span>
-                  <span>CMA {city.id}</span>
-                </>
-              )}
-            </div>
-            {isSuburb && parentCity && (
-              <Link
-                href={`/city/${parentCity.slug}`}
-                className="inline-flex items-center gap-1 text-xs text-neutral-400 hover:text-black transition-colors mb-2"
-              >
-                <ArrowLeft size={11} />
-                Part of {parentCity.name.split("–")[0].trim()} CMA
-              </Link>
-            )}
-            <h1 className="text-5xl font-bold tracking-tight text-black leading-none">{city.name}</h1>
-          </div>
-          <div className="text-right">
-            <ScoreText
-              score={city.totalScore}
-              className="text-7xl font-bold font-mono leading-none block"
-              style={{ color: totalColor }}
-            />
-            <div className="text-xs text-neutral-400 mt-2 font-mono">/ 100</div>
-          </div>
-        </div>
+        <CityHero
+          slug={city.slug}
+          isSuburb={isSuburb}
+          cityName={city.name}
+          province={city.province}
+          cmaId={isSuburb ? undefined : city.id}
+          parentCitySlug={isSuburb ? parentCity?.slug : undefined}
+          parentCityName={isSuburb ? parentCity?.name.split("–")[0].trim() : undefined}
+          fallbackRank={rank}
+          fallbackPoolSize={poolSize}
+          fallbackScore={city.totalScore}
+        />
 
         {/* Raw stats grid */}
         <div className="grid grid-cols-3 gap-3 mb-3">
